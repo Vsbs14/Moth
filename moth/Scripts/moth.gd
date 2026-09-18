@@ -10,11 +10,11 @@ extends CharacterBody2D
 @export var steer_accel := 12.0
 
 @export_group("Tilt")
-@export var climb_pitch_deg := -25.0       # Slight upward pitch when flapping
-@export var glide_pitch_deg := 15.0        # Gentle downward tilt while drifting
-@export var dive_pitch_deg := 80.0         # Sharp, dramatic nose-down dive
-@export var bank_deg := 18.0               # Extra tilt when leaning into a turn
-@export var rot_smooth := 14.0
+@export var climb_pitch_deg := 0.0
+@export var glide_pitch_deg := 180.0
+@export var dive_pitch_deg := 80.0
+@export var bank_deg := 24.0
+@export var rotation_smoothness := 4.5
 
 @export_group("Stamina")
 @export var max_stamina := 100.0
@@ -39,6 +39,7 @@ func _physics_process(delta: float) -> void:
 
 	var is_climbing := climb_pressed and not is_exhausted
 	var is_diving := dive_pressed and not is_climbing
+	var is_fluttering := not is_climbing and not is_diving
 
 	if is_climbing:
 		stamina = max(0.0, stamina - stamina_drain * delta)
@@ -59,49 +60,79 @@ func _physics_process(delta: float) -> void:
 		target_vy = glide_speed
 		y_accel = fall_accel
 
-	velocity.y = move_toward(velocity.y, target_vy, y_accel * 100.0 * delta)
+	velocity.y = move_toward(
+		velocity.y,
+		target_vy,
+		y_accel * 100.0 * delta
+	)
 
-	# 3. Horizontal Speed (Faster during dives, tighter while climbing)
+	# 3. Horizontal Speed
 	var speed_mod := 1.4 if is_diving else (0.8 if is_climbing else 1.0)
 	var target_vx := steer_input * steer_speed * speed_mod
-	velocity.x = move_toward(velocity.x, target_vx, steer_accel * 100.0 * delta)
 
-	# 4. Direction & Pitch
-	if steer_input != 0:
-		# Flip only when actively steering and maintain last facing direction
-		sprite.flip_h = steer_input < 0
+	velocity.x = move_toward(
+		velocity.x,
+		target_vx,
+		steer_accel * 100.0 * delta
+	)
 
-	# Base pitch decided purely by intent state
+	# 4. Direction
+	if steer_input != 0.0:
+		sprite.flip_h = steer_input < 0.0
+
+	# 5. Rotation
 	var base_pitch := glide_pitch_deg
+
 	if is_climbing:
 		base_pitch = climb_pitch_deg
 	elif is_diving:
 		base_pitch = dive_pitch_deg
 
-	# Add bank roll: leaning forward/downward in the direction of flight
-	var bank := steer_input * bank_deg if not sprite.flip_h else -steer_input * bank_deg
+	# Bank into the turn.
+	#
+	# When fluttering, the moth is upside down, so the visual
+	# bank needs to be reversed to match the actual movement.
+	var bank := steer_input * bank_deg
+
+	if is_fluttering:
+		bank = -bank
+
 	var target_angle := deg_to_rad(base_pitch + bank)
 
-	# Symmetrical pitch adjustment when facing left
-	if sprite.flip_h:
-		target_angle = -target_angle
+	# Smoothly ease toward the target angle.
+	# This feels much softer than a constant rotation speed.
+	var rotation_weight := 1.0 - exp(-rotation_smoothness * delta)
 
-	sprite.rotation = lerp_angle(sprite.rotation, target_angle, rot_smooth * delta)
+	sprite.rotation = lerp_angle(
+		sprite.rotation,
+		target_angle,
+		rotation_weight
+	)
 
-	# 5. Procedural Squash & Stretch
+	# 6. Procedural Squash & Stretch
 	var target_scale_y := 1.0
 	var target_scale_x := 1.0
+
 	if is_climbing:
-		target_scale_y = 1.15  # Stretch vertically during flap
+		target_scale_y = 1.15
 		target_scale_x = 0.88
 	elif is_diving:
-		target_scale_y = 1.25  # Streamline stretch during steep dive
+		target_scale_y = 1.25
 		target_scale_x = 0.80
 
-	sprite.scale.x = move_toward(sprite.scale.x, target_scale_x, 3.0 * delta)
-	sprite.scale.y = move_toward(sprite.scale.y, target_scale_y, 3.0 * delta)
+	sprite.scale.x = move_toward(
+		sprite.scale.x,
+		target_scale_x,
+		3.0 * delta
+	)
 
-	# 6. Animations
+	sprite.scale.y = move_toward(
+		sprite.scale.y,
+		target_scale_y,
+		3.0 * delta
+	)
+
+	# 7. Animations
 	if is_climbing:
 		sprite.play("climb")
 	else:
