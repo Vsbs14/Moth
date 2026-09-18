@@ -23,6 +23,18 @@ region = Rect2(192, 0, 64, 64)
 atlas = ExtResource("2_8od7v")
 region = Rect2(256, 0, 64, 64)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_8od7v"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2cgwh"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iaow0"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(64, 0, 64, 64)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_0c07c"]
 atlas = ExtResource("2_8od7v")
 region = Rect2(256, 0, 64, 64)
@@ -51,6 +63,20 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_8od7v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2cgwh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iaow0")
+}],
+"loop": 1,
+"name": &"flutter",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_0c07c")
 }],
 "loop": 1,
@@ -67,7 +93,7 @@ script = ExtResource("1_lc1oi")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Moth" unique_id=783714042]
 sprite_frames = SubResource("SpriteFrames_qc4db")
-animation = &"glide"
+animation = &"flutter"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Moth" unique_id=1817213109]
 shape = SubResource("RectangleShape2D_xux64")
