@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://c64uwrmnboqvm"]
+
+[ext_resource type="Script" uid="uid://dchstbrrudx1c" path="res://Scripts/moth.gd" id="1_lc1oi"]
+[ext_resource type="Texture2D" uid="uid://b1u8k6qhnnle6" path="res://Assets/moth_flying.png" id="2_8od7v"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qc4db"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ys1qc"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_35xla"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3aeo"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5wyu1"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0c07c"]
+atlas = ExtResource("2_8od7v")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qc4db"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qc4db")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ys1qc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_35xla")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i3aeo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5wyu1")
+}],
+"loop": 1,
+"name": &"climb",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0c07c")
+}],
+"loop": 1,
+"name": &"glide",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xux64"]
+
+[node name="Test" type="Node2D" unique_id=804192344]
+
+[node name="Moth" type="CharacterBody2D" parent="." unique_id=1830718729]
+script = ExtResource("1_lc1oi")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Moth" unique_id=783714042]
+sprite_frames = SubResource("SpriteFrames_qc4db")
+animation = &"glide"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Moth" unique_id=1817213109]
+shape = SubResource("RectangleShape2D_xux64")
