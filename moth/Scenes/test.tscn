@@ -34,10 +34,10 @@ flip_h = true
 
 [node name="Moth" parent="." unique_id=2137123087 instance=ExtResource("2_8od7v")]
 position = Vector2(323, 542)
-pull_detect_radius = 200.0
 
 [node name="ZapperLight" parent="." unique_id=1599364450 instance=ExtResource("3_qc4db")]
-position = Vector2(668, 42)
+position = Vector2(186, 141)
+scale = Vector2(1.5, 1.5)
 
 [node name="CheckpointLight" parent="." unique_id=1265643818 instance=ExtResource("5_35xla")]
 position = Vector2(735, 534)
@@ -45,6 +45,6 @@ scale = Vector2(2, 2)
 pull_strength = 0.0
 
 [node name="CheckpointLight2" parent="." unique_id=1583551371 instance=ExtResource("5_35xla")]
-position = Vector2(77, 194)
+position = Vector2(793, 105)
 scale = Vector2(2, 2)
 pull_strength = 0.0

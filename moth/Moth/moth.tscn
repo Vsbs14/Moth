@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b12me6gbxam4a"]
 
 [ext_resource type="Script" uid="uid://dchstbrrudx1c" path="res://Scripts/moth.gd" id="1_l1t07"]
-[ext_resource type="Texture2D" uid="uid://b1u8k6qhnnle6" path="res://Assets/moth_flying.png" id="2_ehlqv"]
+[ext_resource type="Texture2D" uid="uid://b1u8k6qhnnle6" path="res://Moth/moth_flying.png" id="2_ehlqv"]
 [ext_resource type="AudioStream" uid="uid://ba471ka4uguqb" path="res://Assets/sfx/singleFlap.mp3" id="3_ja8pd"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qc4db"]
@@ -93,6 +93,7 @@ radius = 200.0
 
 [node name="Moth" type="CharacterBody2D" unique_id=2137123087]
 script = ExtResource("1_l1t07")
+pull_detect_radius = 200.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=88363145]
 sprite_frames = SubResource("SpriteFrames_qc4db")

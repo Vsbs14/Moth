@@ -55,11 +55,29 @@ signal pull_ended
 func _ready() -> void:
 	add_to_group("moth")
 	respawn_position = global_position
+	_sync_pull_detect_radius()
 	# Deferred so it runs after every other node in the scene has finished
 	# its own _ready() -- otherwise, if Moth appears earlier in the scene
 	# tree than the CheckpointLights, they won't have added themselves to
 	# the "lights" group yet and this would silently connect to nothing.
 	call_deferred("_connect_existing_checkpoints")
+
+func _sync_pull_detect_radius() -> void:
+	# pull_detect_radius is the single source of truth: whatever you set it
+	# to in the Inspector (per scene instance) is pushed into the actual
+	# CircleShape2D on LightDetectArea here, so the real detection collider
+	# always matches without needing to edit the shape resource by hand.
+	var shape_node := detect_area.get_node_or_null("CircleShape2D")
+	if shape_node and shape_node.shape is CircleShape2D:
+		# Godot shares CircleShape2D resources by reference across instances
+		# unless "Local to Scene" is enabled on the resource -- duplicate it
+		# here so setting the radius on one Moth instance never bleeds into
+		# other instances/scenes using what looks like "the same" shape.
+		var shape: CircleShape2D = shape_node.shape.duplicate()
+		shape.radius = pull_detect_radius
+		shape_node.shape = shape
+	else:
+		push_warning("Moth: couldn't find a CircleShape2D under LightDetectArea to sync pull_detect_radius to -- detection radius may not match the exported value (%s)." % pull_detect_radius)
 
 func _connect_existing_checkpoints() -> void:
 	# Hook up every CheckpointLight already placed in the scene tree at
