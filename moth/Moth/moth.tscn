@@ -1,0 +1,112 @@
+[gd_scene format=3 uid="uid://b12me6gbxam4a"]
+
+[ext_resource type="Script" uid="uid://dchstbrrudx1c" path="res://Scripts/moth.gd" id="1_l1t07"]
+[ext_resource type="Texture2D" uid="uid://b1u8k6qhnnle6" path="res://Moth/moth_flying.png" id="2_ehlqv"]
+[ext_resource type="AudioStream" uid="uid://ba471ka4uguqb" path="res://Assets/sfx/singleFlap.mp3" id="3_ja8pd"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qc4db"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ys1qc"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_35xla"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3aeo"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5wyu1"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8od7v"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2cgwh"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iaow0"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0c07c"]
+atlas = ExtResource("2_ehlqv")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qc4db"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qc4db")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ys1qc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_35xla")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i3aeo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5wyu1")
+}],
+"loop": 1,
+"name": &"climb",
+"speed": 24.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8od7v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2cgwh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iaow0")
+}],
+"loop": 1,
+"name": &"flutter",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0c07c")
+}],
+"loop": 1,
+"name": &"glide",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hykhl"]
+size = Vector2(45, 33)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ys1qc"]
+radius = 200.0
+
+[node name="Moth" type="CharacterBody2D" unique_id=2137123087]
+script = ExtResource("1_l1t07")
+pull_detect_radius = 200.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=88363145]
+sprite_frames = SubResource("SpriteFrames_qc4db")
+animation = &"flutter"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1240334554]
+position = Vector2(-0.5, -2.5)
+shape = SubResource("RectangleShape2D_hykhl")
+
+[node name="LightDetectArea" type="Area2D" parent="." unique_id=1324957441]
+
+[node name="CircleShape2D" type="CollisionShape2D" parent="LightDetectArea" unique_id=972884719]
+shape = SubResource("CircleShape2D_ys1qc")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=919262562]
+stream = ExtResource("3_ja8pd")

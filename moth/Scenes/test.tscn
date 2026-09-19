@@ -1,117 +1,50 @@
 [gd_scene format=3 uid="uid://c64uwrmnboqvm"]
 
-[ext_resource type="Script" uid="uid://dchstbrrudx1c" path="res://Scripts/moth.gd" id="1_lc1oi"]
-[ext_resource type="Texture2D" uid="uid://b1u8k6qhnnle6" path="res://Assets/moth_flying.png" id="2_8od7v"]
+[ext_resource type="PackedScene" uid="uid://b12me6gbxam4a" path="res://Moth/moth.tscn" id="2_8od7v"]
 [ext_resource type="PackedScene" uid="uid://d1edvvvdx7xwu" path="res://Lights/zapper_light.tscn" id="3_qc4db"]
-[ext_resource type="AudioStream" uid="uid://ba471ka4uguqb" path="res://Assets/sfx/singleFlap.mp3" id="4_ys1qc"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_qc4db"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(0, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ys1qc"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(64, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_35xla"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(128, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_i3aeo"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(192, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5wyu1"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(256, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_8od7v"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(192, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_2cgwh"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(128, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_iaow0"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(64, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_0c07c"]
-atlas = ExtResource("2_8od7v")
-region = Rect2(256, 0, 64, 64)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_qc4db"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qc4db")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ys1qc")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_35xla")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_i3aeo")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_5wyu1")
-}],
-"loop": 1,
-"name": &"climb",
-"speed": 24.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_8od7v")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_2cgwh")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_iaow0")
-}],
-"loop": 1,
-"name": &"flutter",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_0c07c")
-}],
-"loop": 1,
-"name": &"glide",
-"speed": 5.0
-}]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hykhl"]
-size = Vector2(45, 33)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_ys1qc"]
-radius = 400.0
+[ext_resource type="Texture2D" uid="uid://ggy1jcejauqo" path="res://Assets/B1/B1 - Bottom.png" id="3_ys1qc"]
+[ext_resource type="Texture2D" uid="uid://qh6g716ew3gx" path="res://Assets/B1/B1 - Lit Window Variant 1.png" id="4_35xla"]
+[ext_resource type="PackedScene" uid="uid://dq2vqw0fcyoto" path="res://Lights/CheckpointLight.tscn" id="5_35xla"]
 
 [node name="Test" type="Node2D" unique_id=804192344]
 
+[node name="B1Bottom" type="Sprite2D" parent="." unique_id=2115298116]
+position = Vector2(163, 490)
+scale = Vector2(5, 5)
+texture = ExtResource("3_ys1qc")
+
+[node name="B1LitWindowVariant1" type="Sprite2D" parent="." unique_id=864225594]
+position = Vector2(162.00003, 171.00005)
+scale = Vector2(5, 5)
+texture = ExtResource("4_35xla")
+
+[node name="B1Bottom2" type="Sprite2D" parent="." unique_id=341738996]
+position = Vector2(677.99994, 489.99997)
+rotation = -0.00028627284
+scale = Vector2(5, 5)
+texture = ExtResource("3_ys1qc")
+flip_h = true
+
+[node name="B1LitWindowVariant2" type="Sprite2D" parent="." unique_id=1779543049]
+position = Vector2(677, 171)
+rotation = -0.00028627284
+scale = Vector2(5, 5)
+texture = ExtResource("4_35xla")
+flip_h = true
+
+[node name="Moth" parent="." unique_id=2137123087 instance=ExtResource("2_8od7v")]
+position = Vector2(323, 542)
+
 [node name="ZapperLight" parent="." unique_id=1599364450 instance=ExtResource("3_qc4db")]
-position = Vector2(808, 196)
+position = Vector2(186, 141)
+scale = Vector2(1.5, 1.5)
 
-[node name="Moth" type="CharacterBody2D" parent="." unique_id=1830718729]
-script = ExtResource("1_lc1oi")
+[node name="CheckpointLight" parent="." unique_id=1265643818 instance=ExtResource("5_35xla")]
+position = Vector2(735, 534)
+scale = Vector2(2, 2)
+pull_strength = 0.0
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Moth" unique_id=783714042]
-sprite_frames = SubResource("SpriteFrames_qc4db")
-animation = &"flutter"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Moth" unique_id=1817213109]
-position = Vector2(-0.5, -2.5)
-shape = SubResource("RectangleShape2D_hykhl")
-
-[node name="LightDetectArea" type="Area2D" parent="Moth" unique_id=507912252]
-
-[node name="CircleShape2D" type="CollisionShape2D" parent="Moth/LightDetectArea" unique_id=991822260]
-shape = SubResource("CircleShape2D_ys1qc")
-
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Moth" unique_id=601684792]
-stream = ExtResource("4_ys1qc")
+[node name="CheckpointLight2" parent="." unique_id=1583551371 instance=ExtResource("5_35xla")]
+position = Vector2(793, 105)
+scale = Vector2(2, 2)
+pull_strength = 0.0

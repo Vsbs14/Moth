@@ -23,12 +23,13 @@ extends CharacterBody2D
 
 @export_group("Light Pull")
 @export var pull_detect_radius := 400.0   # how far the moth "senses" lights
-@export var pull_accel := 2600.0          # extra acceleration toward an attracting light (px/sec^2). Compare to climb/steer accel (~1200-1400 effective) -- needs to be clearly stronger to feel like a real fight
+@export var pull_ramp_time := 5.0         # seconds of continuous exposure to reach full pull strength (longer = more reaction time before it gets hard)
+@export var pull_accel_max := 2000.0      # extra acceleration toward an attracting light at FULL ramp (px/sec^2), added on top of the idle drift-toward-light behavior
 @export var pull_altitude_scale := 0.002  # pull gets stronger the higher you climb
 
 @export_group("Resist")
-@export var resist_mash_decay := 0.6      # how fast resist charge drains per second while NOT mashing
-@export var resist_mash_gain := 0.22      # charge added per mash press
+@export var resist_mash_decay := 0.35     # how fast resist charge drains per second while NOT mashing (lower = more forgiving, easier to hold ground between presses)
+@export var resist_mash_gain := 0.3       # charge added per mash press
 @export var resist_charge_to_escape := 1.0 # charge at which pull is fully cancelled (0..1)
 
 var stamina := max_stamina
@@ -37,9 +38,12 @@ var is_exhausted := false
 var is_resisting := false
 var resist_charge := 0.0
 var is_being_pulled := false
+var pull_exposure_time := 0.0   # seconds spent continuously inside a light's pull range; resets to 0 the moment you leave range
 
 var current_altitude := 0.0   # set externally or derived from -global_position.y
 var is_dead := false
+
+var respawn_position: Vector2   # last checkpoint reached; where the moth respawns on death. Defaults to spawn position until a checkpoint is hit.
 
 signal pull_started
 signal pull_ended
@@ -50,6 +54,51 @@ signal pull_ended
 
 func _ready() -> void:
 	add_to_group("moth")
+	respawn_position = global_position
+	_sync_pull_detect_radius()
+	# Deferred so it runs after every other node in the scene has finished
+	# its own _ready() -- otherwise, if Moth appears earlier in the scene
+	# tree than the CheckpointLights, they won't have added themselves to
+	# the "lights" group yet and this would silently connect to nothing.
+	call_deferred("_connect_existing_checkpoints")
+
+func _sync_pull_detect_radius() -> void:
+	# pull_detect_radius is the single source of truth: whatever you set it
+	# to in the Inspector (per scene instance) is pushed into the actual
+	# CircleShape2D on LightDetectArea here, so the real detection collider
+	# always matches without needing to edit the shape resource by hand.
+	var shape_node := detect_area.get_node_or_null("CircleShape2D")
+	if shape_node and shape_node.shape is CircleShape2D:
+		# Godot shares CircleShape2D resources by reference across instances
+		# unless "Local to Scene" is enabled on the resource -- duplicate it
+		# here so setting the radius on one Moth instance never bleeds into
+		# other instances/scenes using what looks like "the same" shape.
+		var shape: CircleShape2D = shape_node.shape.duplicate()
+		shape.radius = pull_detect_radius
+		shape_node.shape = shape
+	else:
+		push_warning("Moth: couldn't find a CircleShape2D under LightDetectArea to sync pull_detect_radius to -- detection radius may not match the exported value (%s)." % pull_detect_radius)
+
+func _connect_existing_checkpoints() -> void:
+	# Hook up every CheckpointLight already placed in the scene tree at
+	# startup. If checkpoints are spawned dynamically later, call
+	# connect_checkpoint() on them individually instead.
+	var found := 0
+	for node in get_tree().get_nodes_in_group("lights"):
+		if node is CheckpointLight:
+			connect_checkpoint(node)
+			found += 1
+	print("[CHECKPOINT] connected to ", found, " checkpoint(s) in scene")
+
+func connect_checkpoint(checkpoint: CheckpointLight) -> void:
+	if not checkpoint.checkpoint_reached.is_connected(_on_checkpoint_reached):
+		checkpoint.checkpoint_reached.connect(_on_checkpoint_reached)
+
+func _on_checkpoint_reached(pos: Vector2) -> void:
+	# Most recently activated checkpoint always becomes the anchor -- no
+	# height comparison, just whichever one you hit last.
+	respawn_position = pos
+	print("[CHECKPOINT] respawn point set -> ", pos)
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -65,11 +114,13 @@ func _physics_process(delta: float) -> void:
 
 	if is_being_pulled and not was_being_pulled:
 		resist_charge = 0.0
+		pull_exposure_time = 0.0
 		pull_started.emit()
 		print("[PULL] light detected, pull started -> ", nearest_light.name)
 	elif was_being_pulled and not is_being_pulled:
+		pull_exposure_time = 0.0
 		pull_ended.emit()
-		print("[PULL] out of range, pull ended")
+		print("[PULL] out of range, pull ended, ramp reset")
 
 	_handle_resist(delta, is_being_pulled)
 
@@ -92,7 +143,9 @@ func _physics_process(delta: float) -> void:
 	if single_flap and !Input.is_action_pressed("fly_up"):
 		single_flap.play()
 
-	# 2. Vertical Velocity -- normal flight control, always active
+	# 2. Vertical Velocity -- normal flight control, always active. While being
+	# pulled and the player isn't actively climbing/diving, the moth drifts
+	# toward the light vertically too -- doing nothing is never a free escape.
 	var target_vy: float
 	var y_accel: float
 
@@ -102,6 +155,11 @@ func _physics_process(delta: float) -> void:
 	elif is_diving:
 		target_vy = dive_speed
 		y_accel = fall_accel * 1.5
+	elif is_being_pulled:
+		var to_light_y_idle: float = nearest_light.global_position.y - global_position.y
+		var idle_ramp: float = clamp(pull_exposure_time / max(pull_ramp_time, 0.001), 0.0, 1.0)
+		target_vy = lerp(glide_speed, signf(to_light_y_idle) * glide_speed, idle_ramp)
+		y_accel = fall_accel
 	else:
 		target_vy = glide_speed
 		y_accel = fall_accel
@@ -117,6 +175,15 @@ func _physics_process(delta: float) -> void:
 	# as "fighting a strong current," not losing control of the moth entirely.
 	var speed_mod := 1.4 if is_diving else (0.8 if is_climbing else 1.0)
 	var target_vx := steer_input * steer_speed * speed_mod
+
+	# While being pulled, doing NOTHING is not a safe option: the moth's own
+	# instinct steers it toward the light unless the player actively steers
+	# against it. This is what "resisting" is protecting you from -- letting
+	# go of the stick and gliding/diving away should NOT be a free escape.
+	if is_being_pulled and steer_input == 0.0:
+		var to_light_x_idle: float = nearest_light.global_position.x - global_position.x
+		var idle_ramp: float = clamp(pull_exposure_time / max(pull_ramp_time, 0.001), 0.0, 1.0)
+		target_vx = lerp(0.0, signf(to_light_x_idle) * steer_speed * speed_mod, idle_ramp)
 
 	velocity.x = move_toward(
 		velocity.x,
@@ -210,27 +277,35 @@ func _handle_resist(delta: float, being_pulled: bool) -> void:
 
 
 func _apply_light_pull(nearest: Light, delta: float) -> void:
+	pull_exposure_time += delta
+
 	var to_light: Vector2 = nearest.global_position - global_position
 	var dist: float = to_light.length()
 	if dist < 1.0:
 		dist = 1.0
 
-	var altitude_bonus: float = 1.0 + current_altitude * pull_altitude_scale
-	var accel: float = pull_accel * nearest.pull_strength * altitude_bonus
+	# Ramp: pull starts weak the instant you enter range and grows toward
+	# full strength over pull_ramp_time seconds of CONTINUOUS exposure.
+	# Flying back out of range resets this to zero -- re-entering starts the
+	# ramp fresh, so ducking in and out of a light's range is a valid way to
+	# approach it cautiously rather than committing to a full fight.
+	var ramp_t: float = clamp(pull_exposure_time / max(pull_ramp_time, 0.001), 0.0, 1.0)
 
-	# resist_charge scales how much of the pull force actually gets through.
-	# At charge 0: full pull. At resist_charge_to_escape: pull is fully
-	# cancelled (0 extra force) -- the player just flies normally again,
-	# rather than being yanked backward or frozen. This is additive to
-	# whatever velocity normal flight controls already set this frame, so
-	# steering/climbing/diving always still work, even mid-pull.
+	var altitude_bonus: float = 1.0 + current_altitude * pull_altitude_scale
+	var accel: float = pull_accel_max * ramp_t * nearest.pull_strength * altitude_bonus
+
+	# resist_charge scales how much of the (already-ramped) pull force gets
+	# through. At charge 0: full ramped pull. At resist_charge_to_escape:
+	# pull is fully cancelled for this frame -- the player just flies
+	# normally, free to steer straight out of the detection radius, which is
+	# the actual way out (crossing pull_detect_radius, not the charge itself).
 	var t: float = clamp(resist_charge / max(resist_charge_to_escape, 0.001), 0.0, 1.0)
 	accel *= (1.0 - t)
 
 	velocity += to_light.normalized() * accel * delta
 
 	if Engine.get_physics_frames() % 30 == 0:  # throttled so it doesn't spam every physics tick
-		print("[PULL] ", nearest.name, " | dist=", snapped(dist, 1.0), " accel=", snapped(accel, 1.0), " charge=", snapped(resist_charge, 0.01))
+		print("[PULL] ", nearest.name, " | dist=", snapped(dist, 1.0), " ramp=", snapped(ramp_t, 0.01), " accel=", snapped(accel, 1.0), " charge=", snapped(resist_charge, 0.01))
 
 
 func _get_nearest_attracting_light() -> Light:
@@ -253,7 +328,7 @@ func interact() -> void:
 			var d := global_position.distance_to(area.global_position)
 			if d <= pull_detect_radius * 0.25:  # tighter range than sensing/pull
 				area.toggle()
-				return  # only tossggle the closest one
+				return  # only toggle the closest one
 
 
 func die() -> void:
@@ -262,5 +337,15 @@ func die() -> void:
 	is_dead = true
 	velocity = Vector2.ZERO
 	sprite.play("death") if sprite.sprite_frames.has_animation("death") else sprite.stop()
-	get_tree().quit()  # TEMP: quit immediately on death for testing; swap for a proper respawn/game-over screen later
-	# GameState.respawn_at_checkpoint() or similar goes here
+	print("[DEATH] respawning at ", respawn_position)
+	await get_tree().create_timer(0.6).timeout   # brief pause so the death pose/anim actually reads before snapping back
+	_respawn()
+
+func _respawn() -> void:
+	global_position = respawn_position
+	velocity = Vector2.ZERO
+	resist_charge = 0.0
+	is_being_pulled = false
+	pull_exposure_time = 0.0
+	is_dead = false
+	sprite.play("flutter")

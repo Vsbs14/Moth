@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://dq2vqw0fcyoto"]
+
+[ext_resource type="Script" uid="uid://beqwji16rlvnm" path="res://Scripts/checkpoint_light.gd" id="1_k5fso"]
+[ext_resource type="Texture2D" uid="uid://cs3em36ptpcsx" path="res://Assets/items_lamps_etc/various item sprites.png" id="2_5r2mc"]
+[ext_resource type="Texture2D" uid="uid://dj3erewjvik5p" path="res://Assets/items_lamps_etc/new_atlas_texture.tres" id="3_altnr"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vqrm1"]
+atlas = ExtResource("2_5r2mc")
+region = Rect2(83, 150, 45, 35)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ob280"]
+atlas = ExtResource("2_5r2mc")
+region = Rect2(19, 150, 45, 35)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xux64"]
+radius = 91.13726
+
+[node name="CheckpointLight" type="Area2D" unique_id=1265643818]
+script = ExtResource("1_k5fso")
+red_texture = SubResource("AtlasTexture_vqrm1")
+green_texture = SubResource("AtlasTexture_ob280")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=259255411]
+texture = ExtResource("3_altnr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1371450939]
+shape = SubResource("CircleShape2D_xux64")

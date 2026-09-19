@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1u8k6qhnnle6"
-path="res://.godot/imported/moth_flying.png-509ca6a3456b5d979f0f7d9c3a1b02a5.ctex"
+uid="uid://iuxvxc7whh0o"
+path="res://.godot/imported/Evil Bird.png-2d181b7c9555f6adedb056df0bd91e57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/moth_flying.png"
-dest_files=["res://.godot/imported/moth_flying.png-509ca6a3456b5d979f0f7d9c3a1b02a5.ctex"]
+source_file="res://Bird/Evil Bird.png"
+dest_files=["res://.godot/imported/Evil Bird.png-2d181b7c9555f6adedb056df0bd91e57.ctex"]
 
 [params]
 
