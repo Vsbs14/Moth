@@ -82,11 +82,13 @@ var _cone_poly: Polygon2D
 var _cone_outline: Line2D
 var _cone_area: Area2D
 @onready var _sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
+@onready var bird_screech: AudioStreamPlayer2D = $birdScreech
 
 
 # ---------- setup ----------
 
 func _ready() -> void:
+	bird_screech.play()
 	if Engine.is_editor_hint():
 		return
 	add_to_group("birds")

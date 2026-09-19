@@ -4,11 +4,14 @@
 [ext_resource type="PackedScene" uid="uid://d1edvvvdx7xwu" path="res://Lights/zapper_light.tscn" id="3_qc4db"]
 [ext_resource type="Texture2D" uid="uid://ggy1jcejauqo" path="res://Assets/B1/B1 - Bottom.png" id="3_ys1qc"]
 [ext_resource type="PackedScene" uid="uid://dq2vqw0fcyoto" path="res://Lights/checkpoint_light.tscn" id="5_35xla"]
+[ext_resource type="AudioStream" uid="uid://04nqtpb2vutj" path="res://Assets/sfx/killZap.mp3" id="5_aees8"]
 [ext_resource type="PackedScene" uid="uid://djo4prc1vm441" path="res://Bird/Bird.tscn" id="6_i3aeo"]
+[ext_resource type="AudioStream" uid="uid://blbgl7calnnjm" path="res://Assets/sfx/electricBuzzing.mp3" id="6_qpfo2"]
 [ext_resource type="PackedScene" uid="uid://cppw1wn2s6grc" path="res://Lights/WindowLights/B1/window_lightB1V1.tscn" id="7_0c07c"]
 [ext_resource type="PackedScene" uid="uid://g2n0of8t4ubk" path="res://Lights/switch.tscn" id="7_5wyu1"]
 [ext_resource type="PackedScene" uid="uid://c3ml3eyqvn1sg" path="res://Lights/WindowLights/B1/window_lightB1V3.tscn" id="8_0c07c"]
 [ext_resource type="PackedScene" uid="uid://cgqjw725q6g8k" path="res://Lights/light.tscn" id="9_iaow0"]
+[ext_resource type="AudioStream" uid="uid://gb2e801u13do" path="res://Assets/sfx/birdScreech.mp3" id="9_yb21e"]
 [ext_resource type="Texture2D" uid="uid://cs3em36ptpcsx" path="res://Assets/items_lamps_etc/various item sprites.png" id="10_qpfo2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yb21e"]
@@ -47,9 +50,23 @@ flip_h = true
 [node name="Moth" parent="." unique_id=2137123087 instance=ExtResource("2_8od7v")]
 position = Vector2(323, 542)
 
+[node name="Camera2D" type="Camera2D" parent="Moth" unique_id=866604371]
+
+[node name="deathSound" type="AudioStreamPlayer2D" parent="Moth" unique_id=1303791464]
+stream = ExtResource("5_aees8")
+volume_db = -5.821
+
 [node name="ZapperLight" parent="." unique_id=1599364450 instance=ExtResource("3_qc4db")]
 position = Vector2(670, 463)
 scale = Vector2(-1.5, 1.5)
+
+[node name="electricBuzzing" type="AudioStreamPlayer2D" parent="ZapperLight" unique_id=1709044695]
+stream = ExtResource("6_qpfo2")
+volume_db = 1.497
+autoplay = true
+max_distance = 397.0
+attenuation = 1.6245003
+panning_strength = 4.9
 
 [node name="CheckpointLight" parent="." unique_id=1265643818 instance=ExtResource("5_35xla")]
 position = Vector2(59, 197)
@@ -67,6 +84,10 @@ scale = Vector2(2, 2)
 color_calm = Color(1, 0.85, 0.2, 0.22)
 color_alert = Color(0.95, 0.1, 0.1, 0.45)
 color_cooldown = Color(0.6, 0.6, 0.6, 0.1)
+
+[node name="birdScreech" type="AudioStreamPlayer2D" parent="Bird" unique_id=872305849]
+stream = ExtResource("9_yb21e")
+max_distance = 424.0
 
 [node name="Switch" parent="." unique_id=527225653 node_paths=PackedStringArray("controlled_lights") instance=ExtResource("7_5wyu1")]
 position = Vector2(106, 457)

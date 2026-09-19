@@ -53,6 +53,8 @@ signal pull_ended
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var detect_area: Area2D = $LightDetectArea  # Area2D w/ CollisionShape2D radius = pull_detect_radius
 @onready var single_flap: AudioStreamPlayer2D = get_node_or_null("single_flap")
+@onready var death_sound: AudioStreamPlayer2D = $deathSound
+
 # Built entirely in code -- no scene node, no addon dependency. A plain
 # Label showing "E" that toggles visible based on interact range.
 var interact_prompt: Label
@@ -403,6 +405,7 @@ func die() -> void:
 	velocity = Vector2.ZERO
 	if single_flap:
 		single_flap.stop()
+	death_sound.play()
 	sprite.play("death") if sprite.sprite_frames.has_animation("death") else sprite.stop()
 	print("[DEATH] respawning at ", respawn_position)
 	await get_tree().create_timer(0.6).timeout   # brief pause so the death pose/anim actually reads before snapping back

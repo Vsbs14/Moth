@@ -5,8 +5,10 @@ class_name ZapperLight
 ## it's a fixed hazard you have to Resist your way past.
 
 @export var death_particles: PackedScene
+@onready var electric_buzzing: AudioStreamPlayer2D = $electricBuzzing
 
 func _ready() -> void:
+	electric_buzzing.play()
 	can_toggle = false
 	super._ready()
 
