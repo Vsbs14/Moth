@@ -26,6 +26,7 @@ extends CharacterBody2D
 @export var pull_ramp_time := 5.0         # seconds of continuous exposure to reach full pull strength (longer = more reaction time before it gets hard)
 @export var pull_accel_max := 2000.0      # extra acceleration toward an attracting light at FULL ramp (px/sec^2), added on top of the idle drift-toward-light behavior
 @export var pull_altitude_scale := 0.002  # pull gets stronger the higher you climb
+@export var pull_orbit_radius := 40.0     # inside this distance, pull force fades toward zero so the moth hovers/orbits instead of slamming into the light's exact center
 
 @export_group("Resist")
 @export var resist_mash_decay := 0.35     # how fast resist charge drains per second while NOT mashing (lower = more forgiving, easier to hold ground between presses)
@@ -52,12 +53,16 @@ signal pull_ended
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var detect_area: Area2D = $LightDetectArea  # Area2D w/ CollisionShape2D radius = pull_detect_radius
 @onready var single_flap: AudioStreamPlayer2D = get_node_or_null("single_flap")
+# Built entirely in code -- no scene node, no addon dependency. A plain
+# Label showing "E" that toggles visible based on interact range.
+var interact_prompt: Label
 
 func _ready() -> void:
 	add_to_group("moth")
 	respawn_position = global_position
 	start_y = global_position.y
 	_sync_pull_detect_radius()
+	_build_interact_prompt()
 	# Deferred so it runs after every other node in the scene has finished
 	# its own _ready() -- otherwise, if Moth appears earlier in the scene
 	# tree than the CheckpointLights, they won't have added themselves to
@@ -80,6 +85,20 @@ func _sync_pull_detect_radius() -> void:
 		shape_node.shape = shape
 	else:
 		push_warning("Moth: couldn't find a CircleShape2D under LightDetectArea to sync pull_detect_radius to -- detection radius may not match the exported value (%s)." % pull_detect_radius)
+
+func _build_interact_prompt() -> void:
+	# Plain code-built Label, no addon/scene node required. Sits above the
+	# moth sprite and is shown/hidden each physics tick based on range.
+	interact_prompt = Label.new()
+	interact_prompt.text = "E"
+	interact_prompt.add_theme_font_size_override("font_size", 28)
+	interact_prompt.add_theme_color_override("font_color", Color.WHITE)
+	interact_prompt.add_theme_color_override("font_outline_color", Color.BLACK)
+	interact_prompt.add_theme_constant_override("outline_size", 6)
+	interact_prompt.z_index = 100
+	interact_prompt.position = Vector2(-8, -70)   # roughly centered above the moth
+	interact_prompt.visible = false
+	add_child(interact_prompt)
 
 func _connect_existing_checkpoints() -> void:
 	# Hook up every CheckpointLight already placed in the scene tree at
@@ -112,6 +131,10 @@ func _physics_process(delta: float) -> void:
 	var steer_input := Input.get_axis("move_left", "move_right")
 	if Input.is_action_just_pressed("interact"):
 		interact()
+	if interact_prompt:
+		# Re-scans every physics tick -- same cost as the pull-detection scan
+		# already running each frame, so this doesn't add a meaningful hit.
+		interact_prompt.visible = _find_nearest_interactable() != null
 	var climb_pressed := Input.is_action_pressed("fly_up")
 	var dive_pressed := Input.is_action_pressed("ui_down")
 
@@ -169,7 +192,13 @@ func _physics_process(delta: float) -> void:
 	elif is_being_pulled:
 		var to_light_y_idle: float = nearest_light.global_position.y - global_position.y
 		var idle_ramp: float = clamp(pull_exposure_time / max(pull_ramp_time, 0.001), 0.0, 1.0)
-		target_vy = lerp(glide_speed, signf(to_light_y_idle) * glide_speed, idle_ramp)
+		# Same orbit falloff as _apply_light_pull -- without it the idle
+		# drift also just slams toward the light's exact y and overshoots/
+		# corrects in a tight jitter once close, instead of settling into a
+		# hover. Falls back to 1.0 (full drift) if not currently pulling on
+		# this axis at all, matched to the same 40px dead zone.
+		var y_falloff: float = clamp((absf(to_light_y_idle) - pull_orbit_radius) / pull_orbit_radius, 0.0, 1.0)
+		target_vy = lerp(glide_speed, signf(to_light_y_idle) * glide_speed * y_falloff, idle_ramp)
 		y_accel = fall_accel
 	else:
 		target_vy = glide_speed
@@ -194,7 +223,8 @@ func _physics_process(delta: float) -> void:
 	if is_being_pulled and steer_input == 0.0:
 		var to_light_x_idle: float = nearest_light.global_position.x - global_position.x
 		var idle_ramp: float = clamp(pull_exposure_time / max(pull_ramp_time, 0.001), 0.0, 1.0)
-		target_vx = lerp(0.0, signf(to_light_x_idle) * steer_speed * speed_mod, idle_ramp)
+		var x_falloff: float = clamp((absf(to_light_x_idle) - pull_orbit_radius) / pull_orbit_radius, 0.0, 1.0)
+		target_vx = lerp(0.0, signf(to_light_x_idle) * steer_speed * speed_mod * x_falloff, idle_ramp)
 
 	velocity.x = move_toward(
 		velocity.x,
@@ -305,6 +335,15 @@ func _apply_light_pull(nearest: Light, delta: float) -> void:
 	var altitude_bonus: float = 1.0 + current_altitude * pull_altitude_scale
 	var accel: float = pull_accel_max * ramp_t * nearest.pull_strength * altitude_bonus
 
+	# Distance falloff + dead zone -- without this, accel stays at full
+	# strength no matter how close the moth gets, so it just slams straight
+	# into the light's center (and visually reads as "stuck" oscillating
+	# behind the sprite) instead of hovering/orbiting near it like a real
+	# moth in a trance. orbit_radius is roughly "how close is close enough";
+	# inside it, pull falls off toward zero instead of staying maxed out.
+	var falloff: float = clamp((dist - pull_orbit_radius) / pull_orbit_radius, 0.0, 1.0)
+	accel *= falloff
+
 	# resist_charge scales how much of the (already-ramped) pull force gets
 	# through. At charge 0: full ramped pull. At resist_charge_to_escape:
 	# pull is fully cancelled for this frame -- the player just flies
@@ -335,13 +374,26 @@ func _get_nearest_attracting_light() -> Light:
 	return best
 
 
-func interact() -> void:
+## Shared by interact() and the prompt-visibility check in _physics_process
+## so "can I press E right now" and "what does E actually do" can never
+## disagree with each other. Switches only -- lights are toggled via their
+## switch, not directly, so the prompt/action never appears for a light,
+## zapper, checkpoint, etc. even when they're technically can_toggle=true.
+func _find_nearest_interactable() -> Switch:
+	var best: Switch = null
+	var best_dist := INF
 	for area in detect_area.get_overlapping_areas():
-		if area is Light:
+		if area is Switch:
 			var d := global_position.distance_to(area.global_position)
-			if d <= pull_detect_radius * 0.6:
-				area.toggle()
-				return  # only toggle the closest one
+			if d <= pull_detect_radius * 0.6 and d < best_dist:
+				best_dist = d
+				best = area
+	return best
+
+func interact() -> void:
+	var best := _find_nearest_interactable()
+	if best:
+		best.interact_with(self)
 
 
 func die() -> void:

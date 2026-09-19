@@ -299,7 +299,10 @@ func _start_qte() -> void:
 	_timer = qte_window
 	_prompt = Label.new()
 	_prompt.text = "[%s]" % OS.get_keycode_string(qte_key)
-	_prompt.add_theme_font_size_override("font_size", 32)
+	_prompt.add_theme_font_size_override("font_size", 28)
+	_prompt.add_theme_color_override("font_color", Color.WHITE)
+	_prompt.add_theme_color_override("font_outline_color", Color.BLACK)
+	_prompt.add_theme_constant_override("outline_size", 6)
 	_prompt.position = Vector2(-24, -90)
 	_prompt.z_index = 100
 	_moth.add_child(_prompt)

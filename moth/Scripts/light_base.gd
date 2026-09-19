@@ -27,6 +27,14 @@ func toggle() -> void:
 	if is_active:
 		get_tree().call_group("birds", "alert_to_position", global_position)
 
+## Shared entry point moth.gd's interact() calls on whatever it finds in
+## range, whether it's a Light or a Switch -- lets the moth script stay
+## agnostic about which type it hit. Lights still toggle themselves directly
+## here; a level designer who wants a light ONLY switch-controlled should
+## just set can_toggle to false on it and wire it into a Switch instead.
+func interact_with(_moth: Node) -> void:
+	toggle()
+
 func _on_toggled() -> void:
 	pass  # override: swap sprite frame, play sound, etc.
 

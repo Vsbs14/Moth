@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://cgqjw725q6g8k"]
+
+[ext_resource type="Script" uid="uid://qs7tnwq6f8jb" path="res://Scripts/light.gd" id="1_6o7v7"]
+[ext_resource type="Texture2D" uid="uid://cs3em36ptpcsx" path="res://Assets/items_lamps_etc/various item sprites.png" id="2_woe2i"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_woe2i"]
+resource_local_to_scene = true
+atlas = ExtResource("2_woe2i")
+region = Rect2(333, 75, 36, 35)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vj8l1"]
+resource_local_to_scene = true
+atlas = ExtResource("2_woe2i")
+region = Rect2(336, 11, 36, 35)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lwe73"]
+resource_local_to_scene = true
+atlas = ExtResource("2_woe2i")
+region = Rect2(336, 11, 36, 35)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xux64"]
+radius = 24.0
+
+[node name="Light" type="Area2D" unique_id=1998134927]
+script = ExtResource("1_6o7v7")
+lit_texture = SubResource("AtlasTexture_woe2i")
+unlit_texture = SubResource("AtlasTexture_vj8l1")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=580487188]
+texture = SubResource("AtlasTexture_lwe73")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1043775034]
+position = Vector2(3, -2)
+shape = SubResource("CircleShape2D_xux64")

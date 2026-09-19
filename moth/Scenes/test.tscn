@@ -3,21 +3,39 @@
 [ext_resource type="PackedScene" uid="uid://b12me6gbxam4a" path="res://Moth/moth.tscn" id="2_8od7v"]
 [ext_resource type="PackedScene" uid="uid://d1edvvvdx7xwu" path="res://Lights/zapper_light.tscn" id="3_qc4db"]
 [ext_resource type="Texture2D" uid="uid://ggy1jcejauqo" path="res://Assets/B1/B1 - Bottom.png" id="3_ys1qc"]
-[ext_resource type="Texture2D" uid="uid://qh6g716ew3gx" path="res://Assets/B1/B1 - Lit Window Variant 1.png" id="4_35xla"]
-[ext_resource type="PackedScene" uid="uid://dq2vqw0fcyoto" path="res://Lights/CheckpointLight.tscn" id="5_35xla"]
+[ext_resource type="PackedScene" uid="uid://dq2vqw0fcyoto" path="res://Lights/checkpoint_light.tscn" id="5_35xla"]
 [ext_resource type="PackedScene" uid="uid://djo4prc1vm441" path="res://Bird/Bird.tscn" id="6_i3aeo"]
+[ext_resource type="PackedScene" uid="uid://cppw1wn2s6grc" path="res://Lights/WindowLights/B1/window_lightB1V1.tscn" id="7_0c07c"]
+[ext_resource type="PackedScene" uid="uid://g2n0of8t4ubk" path="res://Lights/switch.tscn" id="7_5wyu1"]
+[ext_resource type="PackedScene" uid="uid://c3ml3eyqvn1sg" path="res://Lights/WindowLights/B1/window_lightB1V3.tscn" id="8_0c07c"]
+[ext_resource type="PackedScene" uid="uid://cgqjw725q6g8k" path="res://Lights/light.tscn" id="9_iaow0"]
+[ext_resource type="Texture2D" uid="uid://cs3em36ptpcsx" path="res://Assets/items_lamps_etc/various item sprites.png" id="10_qpfo2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yb21e"]
+resource_local_to_scene = true
+atlas = ExtResource("10_qpfo2")
+region = Rect2(333, 75, 36, 35)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aees8"]
+resource_local_to_scene = true
+atlas = ExtResource("10_qpfo2")
+region = Rect2(336, 11, 36, 35)
 
 [node name="Test" type="Node2D" unique_id=804192344]
+
+[node name="WindowLight" parent="." unique_id=55474756 instance=ExtResource("7_0c07c")]
+position = Vector2(159.00002, 170)
+scale = Vector2(5, 5)
+
+[node name="WindowLight2" parent="." unique_id=526298306 instance=ExtResource("8_0c07c")]
+position = Vector2(679.00006, 174)
+rotation = 3.1415927
+scale = Vector2(5, -5)
 
 [node name="B1Bottom" type="Sprite2D" parent="." unique_id=2115298116]
 position = Vector2(163, 490)
 scale = Vector2(5, 5)
 texture = ExtResource("3_ys1qc")
-
-[node name="B1LitWindowVariant1" type="Sprite2D" parent="." unique_id=864225594]
-position = Vector2(162.00003, 171.00005)
-scale = Vector2(5, 5)
-texture = ExtResource("4_35xla")
 
 [node name="B1Bottom2" type="Sprite2D" parent="." unique_id=341738996]
 position = Vector2(677.99994, 489.99997)
@@ -26,27 +44,20 @@ scale = Vector2(5, 5)
 texture = ExtResource("3_ys1qc")
 flip_h = true
 
-[node name="B1LitWindowVariant2" type="Sprite2D" parent="." unique_id=1779543049]
-position = Vector2(677, 171)
-rotation = -0.00028627284
-scale = Vector2(5, 5)
-texture = ExtResource("4_35xla")
-flip_h = true
-
 [node name="Moth" parent="." unique_id=2137123087 instance=ExtResource("2_8od7v")]
 position = Vector2(323, 542)
 
 [node name="ZapperLight" parent="." unique_id=1599364450 instance=ExtResource("3_qc4db")]
-position = Vector2(186, 141)
-scale = Vector2(1.5, 1.5)
+position = Vector2(670, 463)
+scale = Vector2(-1.5, 1.5)
 
 [node name="CheckpointLight" parent="." unique_id=1265643818 instance=ExtResource("5_35xla")]
-position = Vector2(735, 534)
-scale = Vector2(2, 2)
+position = Vector2(59, 197)
+scale = Vector2(-2, 2)
 pull_strength = 0.0
 
 [node name="CheckpointLight2" parent="." unique_id=1583551371 instance=ExtResource("5_35xla")]
-position = Vector2(793, 105)
+position = Vector2(779, 199)
 scale = Vector2(2, 2)
 pull_strength = 0.0
 
@@ -56,3 +67,14 @@ scale = Vector2(2, 2)
 color_calm = Color(1, 0.85, 0.2, 0.22)
 color_alert = Color(0.95, 0.1, 0.1, 0.45)
 color_cooldown = Color(0.6, 0.6, 0.6, 0.1)
+
+[node name="Switch" parent="." unique_id=527225653 node_paths=PackedStringArray("controlled_lights") instance=ExtResource("7_5wyu1")]
+position = Vector2(106, 457)
+scale = Vector2(0.72, 0.7317193)
+controlled_lights = [NodePath("../WindowLight"), NodePath("../Light")]
+
+[node name="Light" parent="." unique_id=1998134927 instance=ExtResource("9_iaow0")]
+position = Vector2(587, 52)
+scale = Vector2(2, 2)
+lit_texture = SubResource("AtlasTexture_yb21e")
+unlit_texture = SubResource("AtlasTexture_aees8")
