@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dchstbrrudx1c" path="res://Scripts/moth.gd" id="1_lc1oi"]
 [ext_resource type="Texture2D" uid="uid://b1u8k6qhnnle6" path="res://Assets/moth_flying.png" id="2_8od7v"]
 [ext_resource type="PackedScene" uid="uid://d1edvvvdx7xwu" path="res://Lights/zapper_light.tscn" id="3_qc4db"]
+[ext_resource type="AudioStream" uid="uid://ba471ka4uguqb" path="res://Assets/sfx/singleFlap.mp3" id="4_ys1qc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qc4db"]
 atlas = ExtResource("2_8od7v")
@@ -111,3 +112,6 @@ shape = SubResource("RectangleShape2D_hykhl")
 
 [node name="CircleShape2D" type="CollisionShape2D" parent="Moth/LightDetectArea" unique_id=991822260]
 shape = SubResource("CircleShape2D_ys1qc")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="Moth" unique_id=601684792]
+stream = ExtResource("4_ys1qc")

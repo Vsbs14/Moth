@@ -253,7 +253,7 @@ func interact() -> void:
 			var d := global_position.distance_to(area.global_position)
 			if d <= pull_detect_radius * 0.25:  # tighter range than sensing/pull
 				area.toggle()
-				return  # only toggle the closest one
+				return  # only tossggle the closest one
 
 
 func die() -> void:
