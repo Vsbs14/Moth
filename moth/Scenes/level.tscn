@@ -1,6 +1,136 @@
 [gd_scene format=3 uid="uid://dunvdabqv1mml"]
 
 [ext_resource type="Script" uid="uid://j2ydghpc8kdx" path="res://Scripts/moth_god_intro.gd" id="1_tumq0"]
+[ext_resource type="PackedScene" uid="uid://b12me6gbxam4a" path="res://Moth/moth.tscn" id="2_k5f4k"]
+[ext_resource type="Texture2D" uid="uid://cs3em36ptpcsx" path="res://Assets/items_lamps_etc/various item sprites.png" id="3_ha31o"]
+[ext_resource type="Texture2D" uid="uid://ggy1jcejauqo" path="res://Assets/B1/B1 - Bottom.png" id="4_pa6b8"]
+[ext_resource type="Texture2D" uid="uid://chdw5stlw804e" path="res://Assets/B1/B1 - Roof Variant 2.png" id="5_crh0w"]
+[ext_resource type="Texture2D" uid="uid://c2iekcjepvklq" path="res://Assets/B1/B1 - Wall Variant 1.png" id="6_c7le1"]
+[ext_resource type="Texture2D" uid="uid://cthn7cpyhv2f7" path="res://Assets/various item sprites.png" id="6_crh0w"]
+[ext_resource type="Texture2D" uid="uid://btep244fu4ihu" path="res://Assets/B1/B1 - Wall Variant 2.png" id="7_2klc5"]
+[ext_resource type="Texture2D" uid="uid://ue4yxe76gcnp" path="res://Assets/B1/B1 - Wall Variant 3.png" id="8_nngtn"]
+[ext_resource type="Texture2D" uid="uid://q4720iisrf66" path="res://Assets/B1/B1 - Window Variant 1.png" id="9_vofx3"]
+[ext_resource type="Texture2D" uid="uid://cbik1nuq2o13l" path="res://Assets/B1/B1 - Window Variant 2.png" id="10_00k4y"]
+[ext_resource type="Texture2D" uid="uid://bphu0swwypum0" path="res://Assets/B1/B1 - Roof Variant 1.png" id="11_3a44l"]
+[ext_resource type="PackedScene" uid="uid://cgqjw725q6g8k" path="res://Lights/light.tscn" id="12_0cmrb"]
+[ext_resource type="Texture2D" uid="uid://bepckm7a7fxkn" path="res://Moth/Moth Side.png" id="13_pa6b8"]
+[ext_resource type="PackedScene" uid="uid://c4d270d2p5ohw" path="res://Lights/hangingLight.tscn" id="15_c7le1"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pnhnk"]
+resource_name = "TrashCan"
+texture = ExtResource("3_ha31o")
+8:12/size_in_atlas = Vector2i(4, 4)
+8:12/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_24uko"]
+texture = ExtResource("4_pa6b8")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gf56v"]
+texture = ExtResource("5_crh0w")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_c7le1"]
+resource_name = "Wire"
+texture = ExtResource("6_crh0w")
+1:4/size_in_atlas = Vector2i(2, 4)
+1:4/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6y3s5"]
+texture = ExtResource("6_c7le1")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_u0did"]
+texture = ExtResource("7_2klc5")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_53r2q"]
+texture = ExtResource("8_nngtn")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_luodc"]
+texture = ExtResource("9_vofx3")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1cgv8"]
+texture = ExtResource("10_00k4y")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hcs0j"]
+resource_name = "Trash"
+texture = ExtResource("3_ha31o")
+8:12/size_in_atlas = Vector2i(4, 4)
+8:12/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_t205d"]
+texture = ExtResource("11_3a44l")
+0:0/size_in_atlas = Vector2i(4, 4)
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_x7fyg"]
+tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_pnhnk")
+sources/1 = SubResource("TileSetAtlasSource_24uko")
+sources/2 = SubResource("TileSetAtlasSource_6y3s5")
+sources/3 = SubResource("TileSetAtlasSource_u0did")
+sources/4 = SubResource("TileSetAtlasSource_53r2q")
+sources/6 = SubResource("TileSetAtlasSource_luodc")
+sources/7 = SubResource("TileSetAtlasSource_1cgv8")
+sources/8 = SubResource("TileSetAtlasSource_hcs0j")
+sources/9 = SubResource("TileSetAtlasSource_t205d")
+sources/10 = SubResource("TileSetAtlasSource_gf56v")
+sources/11 = SubResource("TileSetAtlasSource_c7le1")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c7le1"]
+resource_local_to_scene = true
+atlas = ExtResource("3_ha31o")
+region = Rect2(333, 75, 36, 35)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2klc5"]
+resource_local_to_scene = true
+atlas = ExtResource("3_ha31o")
+region = Rect2(336, 11, 36, 35)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nngtn"]
+resource_local_to_scene = true
+atlas = ExtResource("3_ha31o")
+region = Rect2(88, 64, 16, 45)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vofx3"]
+resource_local_to_scene = true
+atlas = ExtResource("3_ha31o")
+region = Rect2(152, 64, 16, 45)
 
 [node name="Level" type="Node2D" unique_id=804192344]
 script = ExtResource("1_tumq0")
+
+[node name="Moth" parent="." unique_id=2137123087 instance=ExtResource("2_k5f4k")]
+position = Vector2(1425, 1156)
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=146111206]
+scale = Vector2(2, 2)
+tile_map_data = PackedByteArray(0, 0, 11, 0, 10, 0, 8, 0, 8, 0, 12, 0, 0, 0)
+tile_set = SubResource("TileSet_x7fyg")
+
+[node name="Light" parent="." unique_id=1998134927 instance=ExtResource("12_0cmrb")]
+position = Vector2(1487, 1071)
+scale = Vector2(2, 2)
+lit_texture = SubResource("AtlasTexture_c7le1")
+unlit_texture = SubResource("AtlasTexture_2klc5")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=479289181]
+position = Vector2(1422, 1166)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("13_pa6b8")
+
+[node name="hangingLight" parent="." unique_id=1403647612 instance=ExtResource("15_c7le1")]
+position = Vector2(1232, 605)
+lit_texture = SubResource("AtlasTexture_nngtn")
+unlit_texture = SubResource("AtlasTexture_vofx3")
