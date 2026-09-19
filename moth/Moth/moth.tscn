@@ -89,7 +89,7 @@ animations = [{
 size = Vector2(45, 33)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ys1qc"]
-radius = 400.0
+radius = 200.0
 
 [node name="Moth" type="CharacterBody2D" unique_id=2137123087]
 script = ExtResource("1_l1t07")

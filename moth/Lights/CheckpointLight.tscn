@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dq2vqw0fcyoto"]
+
+[ext_resource type="Script" uid="uid://beqwji16rlvnm" path="res://Scripts/checkpoint_light.gd" id="1_k5fso"]
+
+[node name="CheckpointLight" type="Area2D" unique_id=1265643818]
+script = ExtResource("1_k5fso")
