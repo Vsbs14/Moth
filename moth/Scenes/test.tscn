@@ -13,13 +13,14 @@
 [ext_resource type="PackedScene" uid="uid://cgqjw725q6g8k" path="res://Lights/light.tscn" id="9_iaow0"]
 [ext_resource type="AudioStream" uid="uid://gb2e801u13do" path="res://Assets/sfx/birdScreech.mp3" id="9_yb21e"]
 [ext_resource type="Texture2D" uid="uid://cs3em36ptpcsx" path="res://Assets/items_lamps_etc/various item sprites.png" id="10_qpfo2"]
+[ext_resource type="AudioStream" uid="uid://ccnjmmihxqy40" path="res://Assets/sfx/untitled-1.mp3" id="14_mie3u"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_yb21e"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_aees8"]
 resource_local_to_scene = true
 atlas = ExtResource("10_qpfo2")
 region = Rect2(333, 75, 36, 35)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_aees8"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_mie3u"]
 resource_local_to_scene = true
 atlas = ExtResource("10_qpfo2")
 region = Rect2(336, 11, 36, 35)
@@ -62,7 +63,7 @@ scale = Vector2(-1.5, 1.5)
 
 [node name="electricBuzzing" type="AudioStreamPlayer2D" parent="ZapperLight" unique_id=1709044695]
 stream = ExtResource("6_qpfo2")
-volume_db = 1.497
+volume_db = 3.437
 autoplay = true
 max_distance = 397.0
 attenuation = 1.6245003
@@ -97,5 +98,12 @@ controlled_lights = [NodePath("../WindowLight"), NodePath("../Light")]
 [node name="Light" parent="." unique_id=1998134927 instance=ExtResource("9_iaow0")]
 position = Vector2(587, 52)
 scale = Vector2(2, 2)
-lit_texture = SubResource("AtlasTexture_yb21e")
-unlit_texture = SubResource("AtlasTexture_aees8")
+lit_texture = SubResource("AtlasTexture_aees8")
+unlit_texture = SubResource("AtlasTexture_mie3u")
+
+[node name="Music1" type="AudioStreamPlayer2D" parent="." unique_id=1899802199]
+stream = ExtResource("14_mie3u")
+volume_db = -7.769
+autoplay = true
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=15686177]
