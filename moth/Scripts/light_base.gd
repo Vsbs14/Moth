@@ -24,6 +24,8 @@ func toggle() -> void:
 		return
 	is_active = !is_active
 	_on_toggled()
+	if is_active:
+		get_tree().call_group("birds", "alert_to_position", global_position)
 
 func _on_toggled() -> void:
 	pass  # override: swap sprite frame, play sound, etc.

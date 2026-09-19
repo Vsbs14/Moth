@@ -95,10 +95,10 @@ func connect_checkpoint(checkpoint: CheckpointLight) -> void:
 		checkpoint.checkpoint_reached.connect(_on_checkpoint_reached)
 
 func _on_checkpoint_reached(pos: Vector2) -> void:
-	# Most recently activated checkpoint always becomes the anchor -- no
-	# height comparison, just whichever one you hit last.
-	respawn_position = pos
-	print("[CHECKPOINT] respawn point set -> ", pos)
+	# Only move the anchor upward (smaller y = higher)
+	if pos.y < respawn_position.y:
+		respawn_position = pos
+		print("[CHECKPOINT] respawn point set -> ", pos)
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -313,7 +313,7 @@ func _get_nearest_attracting_light() -> Light:
 	var best_dist := INF
 
 	for body in detect_area.get_overlapping_areas():
-		if body is Light and body.is_attracting():
+		if body is Light and body.is_attracting() and body.pull_strength > 0.0:
 			var d := global_position.distance_to(body.global_position)
 			if d < best_dist:
 				best_dist = d

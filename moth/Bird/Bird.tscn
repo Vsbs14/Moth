@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://djo4prc1vm441"]
+
+[ext_resource type="Script" uid="uid://dw42yvfnf0pfa" path="res://Scripts/bird.gd" id="1_ndjy2"]
+[ext_resource type="Texture2D" uid="uid://iuxvxc7whh0o" path="res://Bird/Evil Bird.png" id="2_vr1r3"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3uwbp"]
+atlas = ExtResource("2_vr1r3")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_slli3"]
+atlas = ExtResource("2_vr1r3")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oprlu"]
+atlas = ExtResource("2_vr1r3")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lw0dh"]
+atlas = ExtResource("2_vr1r3")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ty31x"]
+atlas = ExtResource("2_vr1r3")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_xux64"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3uwbp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_slli3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oprlu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lw0dh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ty31x")
+}],
+"loop": 1,
+"name": &"flying",
+"speed": 5.0
+}]
+
+[node name="Bird" type="Node2D" unique_id=1255274868]
+script = ExtResource("1_ndjy2")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=311353556]
+sprite_frames = SubResource("SpriteFrames_xux64")
+animation = &"flying"
