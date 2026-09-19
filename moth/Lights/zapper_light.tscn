@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cr5aau72o5ymq" path="res://Scripts/zapper_light.gd" id="1_150vf"]
 [ext_resource type="Texture2D" uid="uid://cs3em36ptpcsx" path="res://Assets/items_lamps_etc/various item sprites.png" id="2_ccfs4"]
+[ext_resource type="AudioStream" uid="uid://blbgl7calnnjm" path="res://Assets/sfx/electricBuzzing.mp3" id="3_uienc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uienc"]
 resource_local_to_scene = true
@@ -20,3 +21,11 @@ texture = SubResource("AtlasTexture_uienc")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1175998164]
 position = Vector2(-1, 0.5)
 shape = SubResource("RectangleShape2D_rngem")
+
+[node name="electricBuzzing" type="AudioStreamPlayer2D" parent="." unique_id=1070569480]
+stream = ExtResource("3_uienc")
+volume_db = 3.437
+autoplay = true
+max_distance = 397.0
+attenuation = 1.6245003
+panning_strength = 4.9

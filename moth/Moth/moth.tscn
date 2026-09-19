@@ -5,6 +5,9 @@
 [ext_resource type="AudioStream" uid="uid://ba471ka4uguqb" path="res://Assets/sfx/singleFlap.mp3" id="3_ja8pd"]
 [ext_resource type="AudioStream" uid="uid://o01fww4tae5t" path="res://Assets/sfx/wingFlap.mp3" id="4_jwcyr"]
 [ext_resource type="AudioStream" uid="uid://04nqtpb2vutj" path="res://Assets/sfx/killZap.mp3" id="5_r7rnq"]
+[ext_resource type="Script" uid="uid://b6c1yc567bswo" path="res://Scripts/stamina_ring.gd" id="6_3emrg"]
+[ext_resource type="Texture2D" uid="uid://wshjhcw7uwaj" path="res://Assets/Stamina Empty.png" id="7_sbbt1"]
+[ext_resource type="Texture2D" uid="uid://dpcfm7stm4mo2" path="res://Assets/Stamina Full.png" id="8_k1c2v"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qc4db"]
 atlas = ExtResource("2_ehlqv")
@@ -125,3 +128,8 @@ stream = SubResource("AudioStreamRandomizer_fxhle")
 [node name="deathSound" type="AudioStreamPlayer2D" parent="." unique_id=1183110061]
 stream = ExtResource("5_r7rnq")
 volume_db = -5.821
+
+[node name="Node2D" type="Node2D" parent="." unique_id=1786586590]
+script = ExtResource("6_3emrg")
+empty_texture = ExtResource("7_sbbt1")
+full_texture = ExtResource("8_k1c2v")

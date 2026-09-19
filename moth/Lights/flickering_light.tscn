@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://cm0icncle3kl6"]
+
+[ext_resource type="Script" uid="uid://dt122pqjjcpsp" path="res://Scripts/flickering_light.gd" id="1_ns7yd"]
+[ext_resource type="Texture2D" uid="uid://dj3erewjvik5p" path="res://Assets/items_lamps_etc/new_atlas_texture.tres" id="3_sqbng"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xux64"]
+radius = 91.13726
+
+[node name="CheckpointLight" type="Area2D" unique_id=1265643818]
+script = ExtResource("1_ns7yd")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=259255411]
+texture = ExtResource("3_sqbng")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1371450939]
+shape = SubResource("CircleShape2D_xux64")

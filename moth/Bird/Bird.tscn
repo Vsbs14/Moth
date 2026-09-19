@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://dw42yvfnf0pfa" path="res://Scripts/bird.gd" id="1_ndjy2"]
 [ext_resource type="Texture2D" uid="uid://iuxvxc7whh0o" path="res://Bird/Evil Bird.png" id="2_vr1r3"]
+[ext_resource type="Texture2D" uid="uid://h5vlmxdo5fjl" path="res://Bird/Evil Bird Idle.png" id="3_slli3"]
+[ext_resource type="AudioStream" uid="uid://gb2e801u13do" path="res://Assets/sfx/birdScreech.mp3" id="4_3uwbp"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3uwbp"]
 atlas = ExtResource("2_vr1r3")
@@ -22,6 +24,30 @@ region = Rect2(192, 0, 64, 64)
 [sub_resource type="AtlasTexture" id="AtlasTexture_ty31x"]
 atlas = ExtResource("2_vr1r3")
 region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xqoxf"]
+atlas = ExtResource("3_slli3")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0c43s"]
+atlas = ExtResource("3_slli3")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n46dp"]
+atlas = ExtResource("3_slli3")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bmgkk"]
+atlas = ExtResource("3_slli3")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ay1ia"]
+atlas = ExtResource("3_slli3")
+region = Rect2(256, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rsxva"]
+atlas = ExtResource("3_slli3")
+region = Rect2(320, 0, 64, 64)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_xux64"]
 animations = [{
@@ -44,11 +70,43 @@ animations = [{
 "loop": 1,
 "name": &"flying",
 "speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xqoxf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0c43s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n46dp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bmgkk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ay1ia")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rsxva")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 12.0
 }]
 
 [node name="Bird" type="Node2D" unique_id=1255274868]
 script = ExtResource("1_ndjy2")
+perched = null
+scan_speed_deg = null
+scan_range_deg = null
+light_notice_radius = null
+light_detour_time = null
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=311353556]
 sprite_frames = SubResource("SpriteFrames_xux64")
-animation = &"flying"
+animation = &"idle"
+
+[node name="birdScreech" type="AudioStreamPlayer2D" parent="." unique_id=1067891761]
+stream = ExtResource("4_3uwbp")
+max_distance = 424.0

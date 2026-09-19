@@ -6,7 +6,7 @@ class_name Bird
 ## Moth in cone -> windup (cone reddens and tracks the moth) -> if still inside:
 ## one-key QTE -> dodge = bird whiffs, fail = moth dies.
 
-enum State { PATROL, INVESTIGATE, WINDUP, QTE, STRIKE, COOLDOWN }
+enum State { PATROL, INVESTIGATE, WINDUP, QTE, STRIKE, COOLDOWN, DETOUR, RETURN_TO_PERCH }
 
 const MOTH_LAYER_MASK := 1
 const ARRIVE_DISTANCE := 4.0
@@ -16,6 +16,14 @@ const LUNGE_BACK_TIME := 0.4
 const DODGE_WHIFF_FRACTION := 0.7
 
 @export_group("Patrol")
+## If true, this bird starts perched exactly where it's placed, with its
+## cone swaying side to side on its own (scan_speed_deg/scan_range_deg)
+## instead of walking a route. A light turning on nearby still pulls it
+## away to go investigate (same as a patrol bird) -- when the light turns
+## back off, a perched bird flies back to its original perch point and
+## resumes perching, instead of resuming a patrol route it never had.
+## Vision-cone catch (windup/QTE/strike) works identically either way.
+@export var perched := false
 @export var patrol_offset := Vector2(400, 0):
 	set(v):
 		patrol_offset = v
@@ -23,6 +31,29 @@ const DODGE_WHIFF_FRACTION := 0.7
 @export var patrol_speed := 90.0
 @export var turn_pause := 0.6
 @export var art_faces_left := false
+
+@export_group("Perched Scan")
+## Only used when perched = true. Degrees/sec the cone sways back and forth.
+@export var scan_speed_deg := 15.0
+## Only used when perched = true. +/- degrees from the bird's base facing.
+@export var scan_range_deg := 35.0
+
+@export_group("Animation")
+## Played while flying (patrolling, detouring to/from a light, returning
+## to perch). Falls back silently to whatever's already playing if this
+## animation name isn't in the sprite's SpriteFrames.
+@export var flying_anim := &"flying"
+## Played while perched-and-idling (holding still, scanning). Only used
+## when perched = true. Falls back to flying_anim if not found, so this
+## is safe to leave unset until the idle animation actually exists.
+@export var idle_anim := &"idle"
+
+@export_group("Light Attraction")
+## If a light turns on within this range, the bird flies to it -- whether
+## perched or patrolling. Set to 0 to disable light-seeking for this bird.
+@export var light_notice_radius := 400.0
+## How long the bird lingers near the light if it doesn't turn off first.
+@export var light_detour_time := 6.0
 
 @export_group("Vision")
 @export_range(10, 180) var cone_angle_deg := 50
@@ -77,6 +108,11 @@ var _pulse_speed := 3.0
 var _moth: Node2D
 var _prompt: Label
 
+var _scan_t := 0.0             # perched mode: cone sway phase
+var _detour_target: Light      # light currently being visited (either mode)
+var _detour_timer := 0.0
+var _perch_position: Vector2   # only meaningful when perched = true
+
 var _cone: VisionCone2D
 var _cone_poly: Polygon2D
 var _cone_outline: Line2D
@@ -92,13 +128,25 @@ func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
 	add_to_group("birds")
-	_patrol_a = global_position
-	_patrol_b = global_position + patrol_offset
-	_target = _patrol_b
+	if perched:
+		# No route to walk -- both patrol endpoints collapse to the spawn
+		# point, so _patrol_step()'s own arrival/turn_pause logic is never
+		# invoked (perched birds use _perched_step() instead -- see below).
+		_patrol_a = global_position
+		_patrol_b = global_position
+		_target = global_position
+		_perch_position = global_position
+	else:
+		_patrol_a = global_position
+		_patrol_b = global_position + patrol_offset
+		_target = _patrol_b
+	if light_notice_radius > 0.0:
+		for light in get_tree().get_nodes_in_group("lights"):
+			if light is Light:
+				(light as Light).light_toggled.connect(_on_light_toggled)
 	_tint = color_calm
 	_build_cone()
-	if _sprite:
-		_sprite.play("flying")
+	_play_anim(idle_anim if perched else flying_anim)
 	_face(_target - global_position)
 
 
@@ -161,7 +209,16 @@ func _physics_process(delta: float) -> void:
 
 	match _state:
 		State.PATROL:
-			_patrol_step(delta)
+			if perched:
+				_perched_step(delta)
+			else:
+				_patrol_step(delta)
+			_check_for_moth()
+		State.DETOUR:
+			_detour_step(delta)
+			_check_for_moth()
+		State.RETURN_TO_PERCH:
+			_return_to_perch_step(delta)
 			_check_for_moth()
 		State.INVESTIGATE:
 			_investigate_step(delta)
@@ -195,10 +252,18 @@ func _update_sleep() -> bool:
 
 # ---------- state handlers ----------
 
+## Central place to (re)enter idle/patrol so every return path -- lost the
+## moth, finished investigating, survived a catch, resumed after light --
+## picks the right animation and movement mode for perched vs patrol birds.
+func _enter_patrol_state() -> void:
+	_state = State.PATROL
+	_play_anim(idle_anim if perched else flying_anim)
+
+
 func _investigate_step(delta: float) -> void:
 	_move_toward(_investigate_pos, investigate_speed, delta)
 	if global_position.distance_to(_investigate_pos) <= investigate_stop_distance:
-		_state = State.PATROL
+		_enter_patrol_state()
 		_pause_left = investigate_linger
 	_check_for_moth()
 
@@ -206,7 +271,7 @@ func _investigate_step(delta: float) -> void:
 func _windup_step(delta: float) -> void:
 	if not _moth_in_cone():
 		# Player escaped in time
-		_state = State.PATROL
+		_enter_patrol_state()
 		_pause_left = LOSE_TARGET_PAUSE
 		_set_calm()
 		return
@@ -229,10 +294,11 @@ func _qte_step(delta: float) -> void:
 
 
 func _cooldown_step(delta: float) -> void:
-	_patrol_step(delta)
+	if not perched:
+		_patrol_step(delta)   # perched birds hold position during cooldown instead of walking
 	_timer -= delta
 	if _timer <= 0.0:
-		_state = State.PATROL
+		_enter_patrol_state()
 		_set_calm()
 
 
@@ -247,6 +313,97 @@ func _patrol_step(delta: float) -> void:
 		_target = _patrol_a if _target == _patrol_b else _patrol_b
 		_pause_left = turn_pause
 		_face(_target - global_position)
+
+
+## Perched birds don't walk anywhere -- the cone just sways in a slow
+## sine sweep around the bird's initial facing direction. Catch logic
+## (windup/QTE/strike) is untouched and takes over the instant the moth
+## enters the cone, exactly like a patrol bird.
+func _perched_step(delta: float) -> void:
+	_scan_t += delta * scan_speed_deg
+	var offset_deg := sin(deg_to_rad(_scan_t)) * scan_range_deg
+	var dir := Vector2.RIGHT.rotated(deg_to_rad(offset_deg))
+	_face(dir)
+
+
+## Fires whenever any Light in the scene toggles. Works for both perched
+## and patrol birds. Turning a light ON nearby pulls the bird into DETOUR;
+## turning it back OFF sends a patrol bird back to patrolling from where
+## it is, and sends a perched bird back to RETURN_TO_PERCH so it flies
+## home before resuming its idle scan.
+func _on_light_toggled(light: Light, active: bool) -> void:
+	if _state != State.PATROL and _state != State.DETOUR:
+		return   # never interrupt INVESTIGATE/WINDUP/QTE/STRIKE/COOLDOWN/RETURN_TO_PERCH
+
+	if not active:
+		if light == _detour_target:
+			_end_detour()
+		return
+
+	if global_position.distance_to(light.global_position) > light_notice_radius:
+		return
+
+	_detour_target = light
+	_detour_timer = light_detour_time
+	_state = State.DETOUR
+	_play_anim(flying_anim)
+
+
+## Drifts toward the detour light and hangs near it, facing it, until the
+## light turns off or light_detour_time runs out.
+func _detour_step(delta: float) -> void:
+	if not is_instance_valid(_detour_target) or not _detour_target.is_active:
+		_end_detour()
+		return
+
+	_detour_timer -= delta
+	if _detour_timer <= 0.0:
+		_end_detour()
+		return
+
+	var to_light := _detour_target.global_position - global_position
+	if to_light.length() > 48.0:
+		_move_toward(_detour_target.global_position, patrol_speed, delta)
+	elif to_light.length() > 0.5:
+		_face(to_light)
+
+
+## A perched bird flies back to its original spot before resuming its
+## idle scan -- so it doesn't just teleport/snap back or start scanning
+## mid-air wherever the detour left it.
+func _return_to_perch_step(delta: float) -> void:
+	var to_perch := _perch_position - global_position
+	if to_perch.length() > 4.0:
+		_move_toward(_perch_position, patrol_speed, delta)
+		return
+	global_position = _perch_position
+	_state = State.PATROL
+	_play_anim(idle_anim)
+
+
+func _end_detour() -> void:
+	_detour_target = null
+	if perched:
+		_state = State.RETURN_TO_PERCH
+		_play_anim(flying_anim)
+	else:
+		_state = State.PATROL
+		_play_anim(flying_anim)
+
+
+## Swaps the bird's animation, falling back to flying_anim if the
+## requested one isn't in the SpriteFrames yet -- so this never errors
+## out just because an idle animation hasn't been added.
+func _play_anim(anim_name: StringName) -> void:
+	if not _sprite or not _sprite.sprite_frames:
+		return
+	var target := anim_name
+	if not _sprite.sprite_frames.has_animation(target):
+		target = flying_anim
+	if not _sprite.sprite_frames.has_animation(target):
+		return
+	if _sprite.animation != target:
+		_sprite.play(target)
 
 
 func _move_toward(dest: Vector2, speed: float, delta: float) -> void:
@@ -397,9 +554,12 @@ func _update_cone_visuals() -> void:
 
 ## SafeLight already calls this via the "birds" group. Also used for the lure.
 func alert_to_position(pos: Vector2) -> void:
-	if _state != State.PATROL and _state != State.INVESTIGATE:
+	if _state != State.PATROL and _state != State.INVESTIGATE \
+			and _state != State.DETOUR and _state != State.RETURN_TO_PERCH:
 		return
+	_detour_target = null   # abandon any detour in favor of the alert
 	if global_position.distance_to(pos) > alert_hear_radius:
 		return
 	_investigate_pos = pos
 	_state = State.INVESTIGATE
+	_play_anim(flying_anim)

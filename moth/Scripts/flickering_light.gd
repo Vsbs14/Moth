@@ -20,6 +20,7 @@ func _ready() -> void:
 
 	if randomize_start:
 		is_active = randf() < 0.5
+		_apply_glow_state()   # sync glow to the randomized start state
 	_start_next_phase()
 
 func _start_next_phase() -> void:
@@ -29,6 +30,13 @@ func _start_next_phase() -> void:
 func _on_cycle_timeout() -> void:
 	is_active = !is_active
 	_on_toggled()
+	_apply_glow_state()
+	# Own toggle() is a no-op for this subtype, so the signal has to be
+	# emitted directly here -- birds still need to hear about flicker
+	# transitions exactly like any other light's toggle.
+	light_toggled.emit(self, is_active)
+	if is_active:
+		get_tree().call_group("birds", "alert_to_position", global_position)
 	_start_next_phase()
 
 func toggle() -> void:
