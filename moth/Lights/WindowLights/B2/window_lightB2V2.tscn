@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://7k8nwu0f7wgi"]
+
+[ext_resource type="Script" uid="uid://bcm6tg6l0qa25" path="res://Scripts/window_light.gd" id="1_ax5up"]
+[ext_resource type="Texture2D" uid="uid://18olhgfd3civ" path="res://Assets/B2/Building 2-24.png" id="2_a1slu"]
+[ext_resource type="Texture2D" uid="uid://dj04osi7xgefj" path="res://Assets/B1/B1 - Lit Window Variant 3.png" id="2_adk51"]
+[ext_resource type="Texture2D" uid="uid://bevgtmbyj10xh" path="res://Assets/B2/Building 2-23.png" id="3_4552m"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tqpcv"]
+size = Vector2(47, 63)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gfbks"]
+size = Vector2(16, 15)
+
+[node name="WindowLight" type="Area2D" unique_id=55474756]
+script = ExtResource("1_ax5up")
+lit_texture = ExtResource("2_a1slu")
+unlit_texture = ExtResource("3_4552m")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1630322230]
+texture = ExtResource("2_adk51")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1976901397]
+position = Vector2(-8.5, -0.5)
+shape = SubResource("RectangleShape2D_tqpcv")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="." unique_id=1581947213]
+position = Vector2(23, 23.5)
+shape = SubResource("RectangleShape2D_gfbks")
