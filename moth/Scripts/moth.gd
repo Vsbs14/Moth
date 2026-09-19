@@ -40,7 +40,8 @@ var resist_charge := 0.0
 var is_being_pulled := false
 var pull_exposure_time := 0.0   # seconds spent continuously inside a light's pull range; resets to 0 the moment you leave range
 
-var current_altitude := 0.0   # set externally or derived from -global_position.y
+var current_altitude := 0.0   # px above the spawn point, updated every frame while alive
+var start_y := 0.0            # spawn height; altitude is measured from here
 var is_dead := false
 
 var respawn_position: Vector2   # last checkpoint reached; where the moth respawns on death. Defaults to spawn position until a checkpoint is hit.
@@ -50,11 +51,12 @@ signal pull_ended
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var detect_area: Area2D = $LightDetectArea  # Area2D w/ CollisionShape2D radius = pull_detect_radius
-@onready var single_flap: AudioStreamPlayer2D = get_node_or_null("singleFlap")
+@onready var single_flap: AudioStreamPlayer2D = get_node_or_null("single_flap")
 
 func _ready() -> void:
 	add_to_group("moth")
 	respawn_position = global_position
+	start_y = global_position.y
 	_sync_pull_detect_radius()
 	# Deferred so it runs after every other node in the scene has finished
 	# its own _ready() -- otherwise, if Moth appears earlier in the scene
@@ -104,7 +106,12 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
+	# Altitude above spawn, drives pull strength scaling
+	current_altitude = maxf(0.0, start_y - global_position.y)
+
 	var steer_input := Input.get_axis("move_left", "move_right")
+	if Input.is_action_just_pressed("interact"):
+		interact()
 	var climb_pressed := Input.is_action_pressed("fly_up")
 	var dive_pressed := Input.is_action_pressed("ui_down")
 
@@ -139,9 +146,13 @@ func _physics_process(delta: float) -> void:
 	else:
 		stamina = min(max_stamina, stamina + stamina_regen * delta)
 
-	# TEMP: only plays if the singleFlap AudioStreamPlayer2D node exists in this scene
-	if single_flap and !Input.is_action_pressed("fly_up"):
-		single_flap.play()
+	# Flap SFX loops while climbing, stops otherwise.
+	# (Loop must be ticked in the mp3's Import tab for a continuous sound.)
+	if single_flap:
+		if is_climbing and not single_flap.playing:
+			single_flap.play()
+		elif not is_climbing and single_flap.playing:
+			single_flap.stop()
 
 	# 2. Vertical Velocity -- normal flight control, always active. While being
 	# pulled and the player isn't actively climbing/diving, the moth drifts
@@ -313,6 +324,8 @@ func _get_nearest_attracting_light() -> Light:
 	var best_dist := INF
 
 	for body in detect_area.get_overlapping_areas():
+		# pull_strength > 0 skips silent lights (checkpoints) so they can't
+		# steal the "nearest light" slot from a real hazard.
 		if body is Light and body.is_attracting() and body.pull_strength > 0.0:
 			var d := global_position.distance_to(body.global_position)
 			if d < best_dist:
@@ -326,7 +339,7 @@ func interact() -> void:
 	for area in detect_area.get_overlapping_areas():
 		if area is Light:
 			var d := global_position.distance_to(area.global_position)
-			if d <= pull_detect_radius * 0.25:  # tighter range than sensing/pull
+			if d <= pull_detect_radius * 0.6:
 				area.toggle()
 				return  # only toggle the closest one
 
@@ -336,6 +349,8 @@ func die() -> void:
 		return
 	is_dead = true
 	velocity = Vector2.ZERO
+	if single_flap:
+		single_flap.stop()
 	sprite.play("death") if sprite.sprite_frames.has_animation("death") else sprite.stop()
 	print("[DEATH] respawning at ", respawn_position)
 	await get_tree().create_timer(0.6).timeout   # brief pause so the death pose/anim actually reads before snapping back

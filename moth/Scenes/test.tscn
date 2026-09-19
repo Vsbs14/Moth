@@ -53,7 +53,6 @@ pull_strength = 0.0
 [node name="Bird" parent="." unique_id=1255274868 instance=ExtResource("6_i3aeo")]
 position = Vector2(48, 260)
 scale = Vector2(2, 2)
-cone_origin = null
 color_calm = Color(1, 0.85, 0.2, 0.22)
 color_alert = Color(0.95, 0.1, 0.1, 0.45)
 color_cooldown = Color(0.6, 0.6, 0.6, 0.1)
