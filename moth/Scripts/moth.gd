@@ -43,6 +43,8 @@ var pull_exposure_time := 0.0   # seconds spent continuously inside a light's pu
 var current_altitude := 0.0   # set externally or derived from -global_position.y
 var is_dead := false
 
+var respawn_position: Vector2   # last checkpoint reached; where the moth respawns on death. Defaults to spawn position until a checkpoint is hit.
+
 signal pull_started
 signal pull_ended
 
@@ -52,6 +54,33 @@ signal pull_ended
 
 func _ready() -> void:
 	add_to_group("moth")
+	respawn_position = global_position
+	# Deferred so it runs after every other node in the scene has finished
+	# its own _ready() -- otherwise, if Moth appears earlier in the scene
+	# tree than the CheckpointLights, they won't have added themselves to
+	# the "lights" group yet and this would silently connect to nothing.
+	call_deferred("_connect_existing_checkpoints")
+
+func _connect_existing_checkpoints() -> void:
+	# Hook up every CheckpointLight already placed in the scene tree at
+	# startup. If checkpoints are spawned dynamically later, call
+	# connect_checkpoint() on them individually instead.
+	var found := 0
+	for node in get_tree().get_nodes_in_group("lights"):
+		if node is CheckpointLight:
+			connect_checkpoint(node)
+			found += 1
+	print("[CHECKPOINT] connected to ", found, " checkpoint(s) in scene")
+
+func connect_checkpoint(checkpoint: CheckpointLight) -> void:
+	if not checkpoint.checkpoint_reached.is_connected(_on_checkpoint_reached):
+		checkpoint.checkpoint_reached.connect(_on_checkpoint_reached)
+
+func _on_checkpoint_reached(pos: Vector2) -> void:
+	# Most recently activated checkpoint always becomes the anchor -- no
+	# height comparison, just whichever one you hit last.
+	respawn_position = pos
+	print("[CHECKPOINT] respawn point set -> ", pos)
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -290,5 +319,15 @@ func die() -> void:
 	is_dead = true
 	velocity = Vector2.ZERO
 	sprite.play("death") if sprite.sprite_frames.has_animation("death") else sprite.stop()
-	get_tree().quit()  # TEMP: quit immediately on death for testing; swap for a proper respawn/game-over screen later
-	# GameState.respawn_at_checkpoint() or similar goes here
+	print("[DEATH] respawning at ", respawn_position)
+	await get_tree().create_timer(0.6).timeout   # brief pause so the death pose/anim actually reads before snapping back
+	_respawn()
+
+func _respawn() -> void:
+	global_position = respawn_position
+	velocity = Vector2.ZERO
+	resist_charge = 0.0
+	is_being_pulled = false
+	pull_exposure_time = 0.0
+	is_dead = false
+	sprite.play("flutter")
