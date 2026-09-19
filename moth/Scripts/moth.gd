@@ -21,6 +21,10 @@ extends CharacterBody2D
 @export var stamina_drain := 35.0
 @export var stamina_regen := 25.0
 
+@onready var single_flap: AudioStreamPlayer2D = $singleFlap
+
+
+
 var stamina := max_stamina
 var is_exhausted := false
 
@@ -31,6 +35,8 @@ func _physics_process(delta: float) -> void:
 	var climb_pressed := Input.is_action_pressed("fly_up")
 	var dive_pressed := Input.is_action_pressed("ui_down")
 
+
+	
 	# 1. Stamina (Gated Recovery)
 	if stamina <= 0.0:
 		is_exhausted = true
@@ -42,10 +48,14 @@ func _physics_process(delta: float) -> void:
 	var is_fluttering := not is_climbing and not is_diving
 
 	if is_climbing:
+		
 		stamina = max(0.0, stamina - stamina_drain * delta)
 	else:
 		stamina = min(max_stamina, stamina + stamina_regen * delta)
 
+	if !Input.is_action_pressed("fly_up"):
+		single_flap.play()
+		
 	# 2. Vertical Velocity
 	var target_vy: float
 	var y_accel: float
@@ -79,6 +89,9 @@ func _physics_process(delta: float) -> void:
 	# 4. Direction
 	if steer_input != 0.0:
 		sprite.flip_h = steer_input < 0.0
+	
+		
+		
 
 	# 5. Rotation
 	var base_pitch := glide_pitch_deg
