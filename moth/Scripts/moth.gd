@@ -78,34 +78,40 @@ func _physics_process(delta: float) -> void:
 	elif stamina >= max_stamina * 0.3:
 		is_exhausted = false
 
-	var is_climbing := climb_pressed and not is_exhausted
-	var is_diving := dive_pressed and not is_climbing
-	var is_fluttering := not is_climbing and not is_diving
+	if is_being_pulled and not was_being_pulled:
+		resist_charge = 0.0
+		pull_started.emit()
+		print("[PULL] light detected, pull started -> ", nearest_light.name)
+	elif was_being_pulled and not is_being_pulled:
+		pull_ended.emit()
+		print("[PULL] out of range, pull ended")
 
-	if is_climbing:
-		stamina = max(0.0, stamina - stamina_drain * delta)
+	_handle_resist(delta, is_being_pulled)
+
+	if is_being_pulled:
+		# While a light is pulling: the pull OVERRIDES normal flight. It happens
+		# regardless of what direction (or whether) the player is steering/
+		# climbing/diving. Mashing Resist is the only thing that fights it.
+		_apply_light_pull(nearest_light, delta)
 	else:
-		stamina = min(max_stamina, stamina + stamina_regen * delta)
+		# 1. Stamina (Gated Recovery)
+		if stamina <= 0.0:
+			is_exhausted = true
+		elif stamina >= max_stamina * 0.3:
+			is_exhausted = false
 
 	# 2. Vertical Velocity -- normal flight control, always active
 	var target_vy: float
 	var y_accel: float
 
-	if is_climbing:
-		target_vy = -climb_speed
-		y_accel = climb_accel
-	elif is_diving:
-		target_vy = dive_speed
-		y_accel = fall_accel * 1.5
-	else:
-		target_vy = glide_speed
-		y_accel = fall_accel
+		if is_climbing:
+			stamina = max(0.0, stamina - stamina_drain * delta)
+		else:
+			stamina = min(max_stamina, stamina + stamina_regen * delta)
 
-	velocity.y = move_toward(
-		velocity.y,
-		target_vy,
-		y_accel * 100.0 * delta
-	)
+		# 2. Vertical Velocity
+		var target_vy: float
+		var y_accel: float
 
 	# 3. Horizontal Speed -- player always keeps steering control; pull never
 	# locks this out. Pull is added afterward as an extra force, so it reads
@@ -113,11 +119,57 @@ func _physics_process(delta: float) -> void:
 	var speed_mod := 1.4 if is_diving else (0.8 if is_climbing else 1.0)
 	var target_vx := steer_input * steer_speed * speed_mod
 
-	velocity.x = move_toward(
-		velocity.x,
-		target_vx,
-		steer_accel * 100.0 * delta
-	)
+		velocity.y = move_toward(
+			velocity.y,
+			target_vy,
+			y_accel * 100.0 * delta
+		)
+
+		# 3. Horizontal Speed
+		var speed_mod := 1.4 if is_diving else (0.8 if is_climbing else 1.0)
+		var target_vx := steer_input * steer_speed * speed_mod
+
+		velocity.x = move_toward(
+			velocity.x,
+			target_vx,
+			steer_accel * 100.0 * delta
+		)
+
+		# 5. Rotation
+		var base_pitch := glide_pitch_deg
+
+		if is_climbing:
+			base_pitch = climb_pitch_deg
+		elif is_diving:
+			base_pitch = dive_pitch_deg
+
+		var bank := steer_input * bank_deg
+
+		if is_fluttering:
+			bank = -bank
+
+		var target_angle := deg_to_rad(base_pitch + bank)
+		var rotation_weight := 1.0 - exp(-rotation_smoothness * delta)
+
+		sprite.rotation = lerp_angle(
+			sprite.rotation,
+			target_angle,
+			rotation_weight
+		)
+
+		# 6. Procedural Squash & Stretch
+		var target_scale_y := 1.0
+		var target_scale_x := 1.0
+
+		if is_climbing:
+			target_scale_y = 1.15
+			target_scale_x = 0.88
+		elif is_diving:
+			target_scale_y = 1.25
+			target_scale_x = 0.80
+
+		sprite.scale.x = move_toward(sprite.scale.x, target_scale_x, 3.0 * delta)
+		sprite.scale.y = move_toward(sprite.scale.y, target_scale_y, 3.0 * delta)
 
 	# 3b. Light pull -- continuous extra force toward the light, added on top
 	# of whatever velocity normal flight controls just produced. Mashing
