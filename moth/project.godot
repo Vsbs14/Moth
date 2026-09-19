@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Moth"
-run/main_scene="uid://c64uwrmnboqvm"
+run/main_scene="uid://dunvdabqv1mml"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+DialogueBox="*uid://cnrrjlb25by6g"
 
 [display]
 
