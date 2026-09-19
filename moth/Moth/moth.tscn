@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://b1u8k6qhnnle6" path="res://Moth/moth_flying.png" id="2_ehlqv"]
 [ext_resource type="AudioStream" uid="uid://ba471ka4uguqb" path="res://Assets/sfx/singleFlap.mp3" id="3_ja8pd"]
 [ext_resource type="AudioStream" uid="uid://o01fww4tae5t" path="res://Assets/sfx/wingFlap.mp3" id="4_jwcyr"]
+[ext_resource type="AudioStream" uid="uid://04nqtpb2vutj" path="res://Assets/sfx/killZap.mp3" id="5_r7rnq"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qc4db"]
 atlas = ExtResource("2_ehlqv")
@@ -118,3 +119,9 @@ shape = SubResource("CircleShape2D_ys1qc")
 
 [node name="single_flap" type="AudioStreamPlayer2D" parent="." unique_id=919262562]
 stream = SubResource("AudioStreamRandomizer_fxhle")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1800574129]
+
+[node name="deathSound" type="AudioStreamPlayer2D" parent="." unique_id=1183110061]
+stream = ExtResource("5_r7rnq")
+volume_db = -5.821
