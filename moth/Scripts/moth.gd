@@ -24,12 +24,14 @@ extends CharacterBody2D
 @export_group("Light Pull")
 @export var pull_detect_radius := 400.0   # how far the moth "senses" lights
 @export var pull_accel := 900.0           # extra acceleration toward an attracting light (px/sec^2), added on top of normal flight -- does NOT lock out steering
+@export var pull_speed := 220.0           # how fast the moth gets dragged toward an attracting light (px/sec at full strength, ignores current movement)
 @export var pull_altitude_scale := 0.002  # pull gets stronger the higher you climb
 
 @export_group("Resist")
 @export var resist_mash_decay := 0.6      # how fast resist charge drains per second while NOT mashing
 @export var resist_mash_gain := 0.22      # charge added per mash press
 @export var resist_charge_to_escape := 1.0 # charge at which pull is fully cancelled (0..1)
+@export var resist_charge_to_escape := 1.0 # charge needed (0..1) to fully cancel the pull
 
 var stamina := max_stamina
 var is_exhausted := false
@@ -103,6 +105,9 @@ func _physics_process(delta: float) -> void:
 	# 2. Vertical Velocity -- normal flight control, always active
 	var target_vy: float
 	var y_accel: float
+		var is_climbing := climb_pressed and not is_exhausted
+		var is_diving := dive_pressed and not is_climbing
+		var is_fluttering := not is_climbing and not is_diving
 
 		if is_climbing:
 			stamina = max(0.0, stamina - stamina_drain * delta)
@@ -118,6 +123,15 @@ func _physics_process(delta: float) -> void:
 	# as "fighting a strong current," not losing control of the moth entirely.
 	var speed_mod := 1.4 if is_diving else (0.8 if is_climbing else 1.0)
 	var target_vx := steer_input * steer_speed * speed_mod
+		if is_climbing:
+			target_vy = -climb_speed
+			y_accel = climb_accel
+		elif is_diving:
+			target_vy = dive_speed
+			y_accel = fall_accel * 1.5
+		else:
+			target_vy = glide_speed
+			y_accel = fall_accel
 
 		velocity.y = move_toward(
 			velocity.y,
@@ -232,6 +246,72 @@ func _physics_process(delta: float) -> void:
 
 	# 7. Animations
 	if climb_pressed and not is_exhausted:
+
+		# 3. Horizontal Speed
+		var speed_mod := 1.4 if is_diving else (0.8 if is_climbing else 1.0)
+		var target_vx := steer_input * steer_speed * speed_mod
+
+		velocity.x = move_toward(
+			velocity.x,
+			target_vx,
+			steer_accel * 100.0 * delta
+		)
+
+		# 5. Rotation
+		var base_pitch := glide_pitch_deg
+
+		if is_climbing:
+			base_pitch = climb_pitch_deg
+		elif is_diving:
+			base_pitch = dive_pitch_deg
+
+		var bank := steer_input * bank_deg
+
+		if is_fluttering:
+			bank = -bank
+
+		var target_angle := deg_to_rad(base_pitch + bank)
+		var rotation_weight := 1.0 - exp(-rotation_smoothness * delta)
+
+		sprite.rotation = lerp_angle(
+			sprite.rotation,
+			target_angle,
+			rotation_weight
+		)
+
+		# 6. Procedural Squash & Stretch
+		var target_scale_y := 1.0
+		var target_scale_x := 1.0
+
+		if is_climbing:
+			target_scale_y = 1.15
+			target_scale_x = 0.88
+		elif is_diving:
+			target_scale_y = 1.25
+			target_scale_x = 0.80
+
+		sprite.scale.x = move_toward(sprite.scale.x, target_scale_x, 3.0 * delta)
+		sprite.scale.y = move_toward(sprite.scale.y, target_scale_y, 3.0 * delta)
+
+	# 4. Direction
+	if is_being_pulled and resist_charge < resist_charge_to_escape:
+		var to_light_x: float = nearest_light.global_position.x - global_position.x
+		# Facing toward the light while being dragged in; flips to face away
+		# while actively mashing, as if straining against the pull. Reverts
+		# back to facing the light the instant mashing stops (if not escaped).
+		# Once fully escaped (charge maxed), this block is skipped entirely
+		# so the sprite straightens out and normal steering takes over facing.
+		if is_resisting:
+			sprite.flip_h = to_light_x > 0.0   # facing away from the light
+		else:
+			sprite.flip_h = to_light_x < 0.0   # facing toward the light
+	elif steer_input != 0.0:
+		sprite.flip_h = steer_input < 0.0
+
+	# 7. Animations
+	if is_being_pulled:
+		sprite.play("flutter")
+	elif climb_pressed and not is_exhausted:
 		sprite.play("climb")
 	else:
 		sprite.play("flutter")
@@ -278,6 +358,23 @@ func _apply_light_pull(nearest: Light, delta: float) -> void:
 
 	if Engine.get_physics_frames() % 30 == 0:  # throttled so it doesn't spam every physics tick
 		print("[PULL] ", nearest.name, " | dist=", snapped(dist, 1.0), " accel=", snapped(accel, 1.0), " charge=", snapped(resist_charge, 0.01))
+	var speed: float = pull_speed * nearest.pull_strength * altitude_bonus
+
+	# Resisting scales the pull DOWN toward zero as charge builds up; at full
+	# charge (resist_charge_to_escape) the pull is fully cancelled and the
+	# moth is free to move normally again on the next frame it's out of range.
+	var resist_cancel: float = (resist_charge / max(resist_charge_to_escape, 0.001)) * (1.0 if is_resisting else 0.0)
+	resist_cancel = clamp(resist_cancel, 0.0, 1.0)
+	speed *= (1.0 - resist_cancel)
+
+	# Pull is a direct drag toward the light, ignoring whatever the player's
+	# steer/climb/dive input is doing -- it overrides velocity outright rather
+	# than adding a force on top of it, so it reads as "being reeled in" and
+	# not just "there's a headwind."
+	velocity = to_light.normalized() * speed
+
+	if Engine.get_physics_frames() % 30 == 0:  # throttled so it doesn't spam every physics tick
+		print("[PULL] moving toward ", nearest.name, " | dist=", snapped(dist, 1.0), " speed=", snapped(speed, 1.0), " resist_cancel=", snapped(resist_cancel, 0.01))
 
 
 func _get_nearest_attracting_light() -> Light:
@@ -305,9 +402,11 @@ func interact() -> void:
 
 func die() -> void:
 	if is_dead:
+	if is_dead:     
 		return
 	is_dead = true
 	velocity = Vector2.ZERO
 	sprite.play("death") if sprite.sprite_frames.has_animation("death") else sprite.stop()
 	get_tree().quit()  # TEMP: quit immediately on death for testing; swap for a proper respawn/game-over screen later
 	# GameState.respawn_at_checkpoint() or similar goes hereaa
+	# GameState.respawn_at_checkpoint() or similar goes here  
